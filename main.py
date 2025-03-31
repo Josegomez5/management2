@@ -1,26 +1,38 @@
+# modules/estudiantes.py
 import streamlit as st
-from modules.auth import login
-from modules.dashboard import mostrar_dashboard
-from modules.estudiantes import gestion_estudiantes
+import pandas as pd
+from modules.auth import get_connection
 
-st.set_page_config(layout="wide")
+def gestion_estudiantes():
+    st.title("🧑‍🎓 Gestión de Estudiantes")
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-if 'autenticado' not in st.session_state:
-    st.session_state.autenticado = False
+    st.subheader("➕ Registrar nuevo estudiante")
+    with st.form("form_estudiante"):
+        nombre = st.text_input("Nombre completo")
+        correo = st.text_input("Correo electrónico")
+        telefono = st.text_input("Teléfono")
+        tutor_nombre = st.text_input("Nombre del tutor")
+        tutor_correo = st.text_input("Correo del tutor")
+        tutor_telefono = st.text_input("Teléfono del tutor")
+        parentesco = st.selectbox("Parentesco", ["Padre", "Madre", "Tío/a", "Otro"])
+        submit = st.form_submit_button("Guardar")
 
-if not st.session_state.autenticado:
-    login()
-else:
-    st.title("🎓 Bienvenido al Sistema Académico")
-    st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
+        if submit:
+            cursor.execute("""
+                INSERT INTO estudiantes (nombre, correo, telefono, tutor_nombre, tutor_correo, tutor_telefono, parentesco)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (nombre, correo, telefono, tutor_nombre, tutor_correo, tutor_telefono, parentesco))
+            conn.commit()
+            st.success("Estudiante registrado exitosamente")
 
-    if st.session_state.rol == "admin":
-        menu = ["Dashboard", "Estudiantes"]
-        opcion = st.sidebar.selectbox("Menú", menu)
-
-        if opcion == "Dashboard":
-            mostrar_dashboard()
-        elif opcion == "Estudiantes":
-            gestion_estudiantes()
+    st.subheader("📋 Lista de estudiantes")
+    cursor.execute("SELECT * FROM estudiantes")
+    estudiantes = cursor.fetchall()
+    if estudiantes:
+        df = pd.DataFrame(estudiantes)
+        st.dataframe(df)
+        st.download_button("⬇️ Descargar Excel", data=df.to_excel(index=False), file_name="estudiantes.xlsx")
     else:
-        st.info("Módulos aún no disponibles para este rol.")
+        st.info("No hay estudiantes registrados aún.")
