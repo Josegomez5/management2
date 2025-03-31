@@ -201,5 +201,6 @@ def gestion_estudiantes():
                                        (estudiante_id, curso_id, fecha_asistencia, estado_asistencia))
                         st.success("Asistencia registrada correctamente")
                     conn.commit()
+                    st.experimental_rerun()
         else:
             st.info("No hay estudiantes registrados aún.")
