@@ -43,7 +43,8 @@ def gestion_estudiantes():
     elif seccion == "Lista de Estudiantes":
         st.subheader("📋 Lista de estudiantes")
         cursor.execute("""
-            SELECT e.*, GROUP_CONCAT(c.nombre SEPARATOR ', ') AS cursos
+            SELECT e.id, e.nombre, e.correo, e.telefono, e.tutor_nombre, e.tutor_correo, e.tutor_telefono, e.parentesco,
+                   GROUP_CONCAT(c.nombre SEPARATOR ', ') AS cursos
             FROM estudiantes e
             LEFT JOIN estudiante_curso ec ON e.id = ec.estudiante_id
             LEFT JOIN cursos c ON ec.curso_id = c.id
@@ -51,16 +52,36 @@ def gestion_estudiantes():
         """)
         estudiantes = cursor.fetchall()
         if estudiantes:
-            df = pd.DataFrame(estudiantes)
-            st.dataframe(df)
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False)
-            st.download_button(
-                label="⬇️ Descargar Excel",
-                data=output.getvalue(),
-                file_name="estudiantes.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in estudiantes}
+            seleccionado = st.selectbox("Selecciona un estudiante para ver su perfil:", list(opciones.keys()))
+            estudiante_id = opciones[seleccionado]
+
+            est = next(e for e in estudiantes if e['id'] == estudiante_id)
+            st.subheader(f"📄 Perfil de {est['nombre']}")
+            st.markdown(f"**Correo:** {est['correo']}")
+            st.markdown(f"**Teléfono:** {est['telefono']}")
+            st.markdown(f"**Curso(s):** {est['cursos']}")
+            st.markdown("**👨‍👩‍👧 Tutor:**")
+            st.markdown(f"- Nombre: {est['tutor_nombre']}")
+            st.markdown(f"- Correo: {est['tutor_correo']}")
+            st.markdown(f"- Teléfono: {est['tutor_telefono']}")
+            st.markdown(f"- Parentesco: {est['parentesco']}")
+
+            # Mostrar pagos
+            st.subheader("💳 Pagos")
+            cursor.execute("""
+                SELECT monto, fecha, fecha_vencimiento
+                FROM pagos
+                WHERE estudiante_id = %s
+                ORDER BY fecha DESC
+            """, (estudiante_id,))
+            pagos = cursor.fetchall()
+            if pagos:
+                df_pagos = pd.DataFrame(pagos)
+                st.dataframe(df_pagos)
+                prox = min(p['fecha_vencimiento'] for p in pagos if p['fecha_vencimiento'])
+                st.info(f"📆 Próximo vencimiento: {prox}")
+            else:
+                st.warning("Este estudiante no tiene pagos registrados.")
         else:
             st.info("No hay estudiantes registrados aún.")
