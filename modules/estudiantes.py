@@ -96,14 +96,14 @@ def gestion_estudiantes():
 
                 col1, col2 = st.columns(2)
                 with col1:
-                                        st.markdown(f"**Correo:** {est['correo']}")
-                        st.markdown(f"**Teléfono:** {est['telefono']}")
-                        st.markdown(f"**Curso(s):** {est['cursos']}")
-                        st.markdown("**👨‍👩‍👧 Tutor:**")
-                        st.markdown(f"- Nombre: {est['tutor_nombre']}")
-                        st.markdown(f"- Correo: {est['tutor_correo']}")
-                        st.markdown(f"- Teléfono: {est['tutor_telefono']}")
-                        st.markdown(f"- Parentesco: {est['parentesco']}")
+    st.markdown(f"**Correo:** {est['correo']}")
+    st.markdown(f"**Teléfono:** {est['telefono']}")
+    st.markdown(f"**Curso(s):** {est['cursos']}")
+    st.markdown("**👨‍👩‍👧 Tutor:**")
+    st.markdown(f"- Nombre: {est['tutor_nombre']}")
+    st.markdown(f"- Correo: {est['tutor_correo']}")
+    st.markdown(f"- Teléfono: {est['tutor_telefono']}")
+    st.markdown(f"- Parentesco: {est['parentesco']}")
 
                 with col2:
                     st.markdown("### ✏️ Editar datos")
