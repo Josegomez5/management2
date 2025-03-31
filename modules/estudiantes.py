@@ -119,5 +119,22 @@ def gestion_estudiantes():
                     st.info(f"📆 Próximo vencimiento: {prox}")
                 else:
                     st.warning("Este estudiante no tiene pagos registrados.")
+
+                # Mostrar asistencia
+                st.subheader("📅 Asistencia")
+                cursor.execute("""
+                    SELECT fecha, presente
+                    FROM asistencias
+                    WHERE estudiante_id = %s
+                    ORDER BY fecha DESC
+                """, (estudiante_id,))
+                asistencia = cursor.fetchall()
+                if asistencia:
+                    df_asistencia = pd.DataFrame(asistencia)
+                    df_asistencia['presente'] = df_asistencia['presente'].apply(lambda x: '✅' if x else '❌')
+                    st.dataframe(df_asistencia)
+                else:
+                    st.info("No hay registros de asistencia para este estudiante.")
+
         else:
             st.info("No hay estudiantes registrados aún.")
