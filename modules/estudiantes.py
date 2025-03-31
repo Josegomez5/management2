@@ -84,7 +84,7 @@ def gestion_estudiantes():
                 cursor.execute("INSERT INTO pagos (estudiante_id, monto, fecha, fecha_vencimiento) VALUES (%s, %s, %s, %s)",
                                (est_nombres[estudiante_sel], monto_pago, fecha_pago, fecha_ven))
                 conn.commit()
-                st.success("Pago registrado correctamente")
+                st.rerun()
 
     elif seccion == "Estudiante":
         st.subheader("🔍 Buscar estudiante")
@@ -210,7 +210,7 @@ def gestion_estudiantes():
                 curso_info = cursor.fetchone()
                 curso_id = curso_info['curso_id'] if curso_info else None
 
-                                if st.button("Guardar asistencia", key="asistencia_btn"):
+                                                if st.button("Guardar asistencia", key="asistencia_btn"):
                     cursor.execute("SELECT * FROM asistencia WHERE estudiante_id = %s AND fecha = %s", (estudiante_id, fecha_asistencia))
                     existente = cursor.fetchone()
                     if existente:
