@@ -17,7 +17,7 @@ else:
 
     if st.session_state.rol == "admin":
         menu = ["Dashboard", "Estudiantes", "Asistencia"]
-        opcion = st.sidebar.selectbox("Menú", menu)
+        opcion = st.sidebar.radio("Menú", menu)
 
         if opcion == "Dashboard":
             mostrar_dashboard()
