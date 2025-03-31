@@ -65,7 +65,7 @@ def gestion_estudiantes():
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-        st.info("No hay estudiantes registrados aún.")
+            st.info("No hay estudiantes registrados aún.")
 
     # Registro general de pagos
     st.markdown("---")
