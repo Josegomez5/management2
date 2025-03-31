@@ -32,7 +32,13 @@ def gestion_estudiantes():
 
     elif seccion == "Lista de Estudiantes":
         st.subheader("📋 Lista de estudiantes")
-        cursor.execute("SELECT * FROM estudiantes")
+        cursor.execute("""
+            SELECT e.*, GROUP_CONCAT(c.nombre SEPARATOR ', ') AS cursos
+            FROM estudiantes e
+            LEFT JOIN estudiante_curso ec ON e.id = ec.estudiante_id
+            LEFT JOIN cursos c ON ec.curso_id = c.id
+            GROUP BY e.id
+        """)
         estudiantes = cursor.fetchall()
         if estudiantes:
             df = pd.DataFrame(estudiantes)
