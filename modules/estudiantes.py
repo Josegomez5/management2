@@ -12,6 +12,12 @@ def gestion_estudiantes():
 
     if seccion == "Registrar Estudiante":
         st.subheader("➕ Registrar nuevo estudiante")
+
+        # Obtener lista de cursos disponibles
+        cursor.execute("SELECT id, nombre FROM cursos")
+        cursos = cursor.fetchall()
+        cursos_dict = {curso['nombre']: curso['id'] for curso in cursos}
+
         with st.form("form_estudiante"):
             nombre = st.text_input("Nombre completo")
             correo = st.text_input("Correo electrónico")
@@ -20,6 +26,7 @@ def gestion_estudiantes():
             tutor_correo = st.text_input("Correo del tutor")
             tutor_telefono = st.text_input("Teléfono del tutor")
             parentesco = st.selectbox("Parentesco", ["Padre", "Madre", "Tío/a", "Otro"])
+            curso_seleccionado = st.selectbox("Curso", list(cursos_dict.keys()))
             submit = st.form_submit_button("Guardar")
 
             if submit:
@@ -27,6 +34,9 @@ def gestion_estudiantes():
                     INSERT INTO estudiantes (nombre, correo, telefono, tutor_nombre, tutor_correo, tutor_telefono, parentesco)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (nombre, correo, telefono, tutor_nombre, tutor_correo, tutor_telefono, parentesco))
+                estudiante_id = cursor.lastrowid
+                curso_id = cursos_dict[curso_seleccionado]
+                cursor.execute("INSERT INTO estudiante_curso (estudiante_id, curso_id) VALUES (%s, %s)", (estudiante_id, curso_id))
                 conn.commit()
                 st.success("Estudiante registrado exitosamente")
 
