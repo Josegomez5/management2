@@ -195,11 +195,11 @@ def gestion_estudiantes():
                     if existente:
                         cursor.execute("UPDATE asistencia SET estado = %s WHERE estudiante_id = %s AND fecha = %s",
                                        (estado_asistencia, estudiante_id, fecha_asistencia))
-                        st.success("Asistencia actualizada correctamente")
+                        
                     else:
                         cursor.execute("INSERT INTO asistencia (estudiante_id, curso_id, fecha, estado) VALUES (%s, %s, %s, %s)",
                                        (estudiante_id, curso_id, fecha_asistencia, estado_asistencia))
-                        st.success("Asistencia registrada correctamente")
+                        
                     conn.commit()
                     st.experimental_rerun()
         else:
