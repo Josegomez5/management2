@@ -210,7 +210,7 @@ def gestion_estudiantes():
                 curso_info = cursor.fetchone()
                 curso_id = curso_info['curso_id'] if curso_info else None
 
-                                                if st.button("Guardar asistencia", key="asistencia_btn"):
+                if st.button("Guardar asistencia", key="asistencia_btn"):
                     cursor.execute("SELECT * FROM asistencia WHERE estudiante_id = %s AND fecha = %s", (estudiante_id, fecha_asistencia))
                     existente = cursor.fetchone()
                     if existente:
