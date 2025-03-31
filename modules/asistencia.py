@@ -1,4 +1,4 @@
-# módulo asistenciaimport streamlit as st
+import streamlit as st
 import pandas as pd
 from modules.auth import get_connection
 from datetime import date
@@ -32,6 +32,12 @@ def gestion_asistencia():
     if st.button("Guardar asistencia"):
         for est_id, presente in asistencia_dict.items():
             estado = 'presente' if presente else 'ausente'
+
+            # Verificar si ya existe curso_id por seguridad
+            cursor.execute("SELECT curso_id FROM estudiante_curso WHERE estudiante_id = %s LIMIT 1", (est_id,))
+            curso_data = cursor.fetchone()
+            curso_id_est = curso_data['curso_id'] if curso_data else None
+
             cursor.execute("""
                 SELECT id FROM asistencia WHERE estudiante_id = %s AND fecha = %s
             """, (est_id, fecha))
@@ -40,6 +46,6 @@ def gestion_asistencia():
                 cursor.execute("UPDATE asistencia SET estado = %s WHERE id = %s", (estado, existe['id']))
             else:
                 cursor.execute("INSERT INTO asistencia (estudiante_id, curso_id, fecha, estado) VALUES (%s, %s, %s, %s)",
-                               (est_id, curso_id, fecha, estado))
+                               (est_id, curso_id_est, fecha, estado))
         conn.commit()
         st.success("Asistencia guardada correctamente")
