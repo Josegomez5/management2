@@ -159,15 +159,14 @@ def gestion_estudiantes():
                         st.warning("Este estudiante no tiene pagos registrados.")
 
                 with colp2:
-                    
-                st.subheader("📅 Asistencia")
-                cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
-                asistencia = cursor.fetchall()
-                if asistencia:
-                    df_asistencia = pd.DataFrame(asistencia)
-                    st.dataframe(df_asistencia)
-                else:
-                    st.info("No hay registros de asistencia para este estudiante.")
+    st.subheader("📅 Asistencia")
+    cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
+    asistencia = cursor.fetchall()
+    if asistencia:
+        df_asistencia = pd.DataFrame(asistencia)
+        st.dataframe(df_asistencia)
+    else:
+        st.info("No hay registros de asistencia para este estudiante.")
 
                 st.markdown("---")
                 st.subheader("✏️ Registrar o actualizar asistencia")
