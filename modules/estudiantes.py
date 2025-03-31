@@ -1,6 +1,6 @@
-# modules/estudiantes.py
 import streamlit as st
 import pandas as pd
+import io
 from modules.auth import get_connection
 
 def gestion_estudiantes():
@@ -37,6 +37,14 @@ def gestion_estudiantes():
         if estudiantes:
             df = pd.DataFrame(estudiantes)
             st.dataframe(df)
-            st.download_button("⬇️ Descargar Excel", data=df.to_excel(index=False), file_name="estudiantes.xlsx")
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+            st.download_button(
+                label="⬇️ Descargar Excel",
+                data=output.getvalue(),
+                file_name="estudiantes.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
         else:
             st.info("No hay estudiantes registrados aún.")
