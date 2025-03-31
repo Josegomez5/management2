@@ -163,10 +163,10 @@ def gestion_estudiantes():
                     cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
                     asistencia = cursor.fetchall()
                     if asistencia:
-        df_asistencia = pd.DataFrame(asistencia)
-        st.dataframe(df_asistencia)
-    else:
-        st.info("No hay registros de asistencia para este estudiante.")
+                        df_asistencia = pd.DataFrame(asistencia)
+                        st.dataframe(df_asistencia)
+                    else:
+                        st.info("No hay registros de asistencia para este estudiante.")
 
                 st.markdown("---")
                 st.subheader("✏️ Registrar o actualizar asistencia")
