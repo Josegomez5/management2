@@ -3,6 +3,8 @@ from modules.auth import login
 from modules.dashboard import mostrar_dashboard
 from modules.estudiantes import gestion_estudiantes
 from modules.asistencia import gestion_asistencia
+from modules.pagos import gestion_pagos
+
 
 st.set_page_config(layout="wide")
 
@@ -16,7 +18,7 @@ else:
     st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
 
     if st.session_state.rol == "admin":
-        menu = ["Dashboard", "Estudiantes", "Asistencia"]
+        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos"]
         opcion = st.sidebar.radio("Menú", menu)
 
         if opcion == "Dashboard":
@@ -25,5 +27,7 @@ else:
             gestion_estudiantes()
         elif opcion == "Asistencia":
             gestion_asistencia()
+        elif opcion == "Pagos":
+            gestion_pagos()
     else:
         st.info("Módulos aún no disponibles para este rol.")
