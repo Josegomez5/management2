@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import io
 from modules.auth import get_connection
+from datetime import date
 
 def gestion_estudiantes():
     st.title("🧑‍🎓 Gestión de Estudiantes")
@@ -13,7 +14,6 @@ def gestion_estudiantes():
     if seccion == "Registrar Estudiante":
         st.subheader("➕ Registrar nuevo estudiante")
 
-        # Obtener lista de cursos disponibles
         cursor.execute("SELECT id, nombre FROM cursos")
         cursos = cursor.fetchall()
         cursos_dict = {curso['nombre']: curso['id'] for curso in cursos}
@@ -83,7 +83,6 @@ def gestion_estudiantes():
             busqueda = st.text_input("Buscar por nombre o correo")
             opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in estudiantes}
 
-            # Filtrar por búsqueda
             if busqueda:
                 opciones = {k: v for k, v in opciones.items() if busqueda.lower() in k.lower()}
 
@@ -122,19 +121,35 @@ def gestion_estudiantes():
 
                 # Mostrar asistencia
                 st.subheader("📅 Asistencia")
-                cursor.execute("""
-                    SELECT fecha, presente
-                    FROM asistencias
-                    WHERE estudiante_id = %s
-                    ORDER BY fecha DESC
-                """, (estudiante_id,))
+                cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
                 asistencia = cursor.fetchall()
                 if asistencia:
                     df_asistencia = pd.DataFrame(asistencia)
-                    df_asistencia['presente'] = df_asistencia['presente'].apply(lambda x: '✅' if x else '❌')
                     st.dataframe(df_asistencia)
                 else:
                     st.info("No hay registros de asistencia para este estudiante.")
 
+                st.markdown("---")
+                st.subheader("✏️ Registrar o actualizar asistencia")
+                fecha_asistencia = st.date_input("Fecha de asistencia")
+                estado_asistencia = st.selectbox("Estado", ["presente", "ausente"])
+
+                # Obtener curso_id para el estudiante
+                cursor.execute("SELECT curso_id FROM estudiante_curso WHERE estudiante_id = %s LIMIT 1", (estudiante_id,))
+                curso_info = cursor.fetchone()
+                curso_id = curso_info['curso_id'] if curso_info else None
+
+                if st.button("Guardar asistencia"):
+                    cursor.execute("SELECT * FROM asistencia WHERE estudiante_id = %s AND fecha = %s", (estudiante_id, fecha_asistencia))
+                    existente = cursor.fetchone()
+                    if existente:
+                        cursor.execute("UPDATE asistencia SET estado = %s WHERE estudiante_id = %s AND fecha = %s",
+                                       (estado_asistencia, estudiante_id, fecha_asistencia))
+                        st.success("Asistencia actualizada correctamente")
+                    else:
+                        cursor.execute("INSERT INTO asistencia (estudiante_id, curso_id, fecha, estado) VALUES (%s, %s, %s, %s)",
+                                       (estudiante_id, curso_id, fecha_asistencia, estado_asistencia))
+                        st.success("Asistencia registrada correctamente")
+                    conn.commit()
         else:
             st.info("No hay estudiantes registrados aún.")
