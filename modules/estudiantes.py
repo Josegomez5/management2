@@ -8,7 +8,7 @@ def gestion_estudiantes():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    seccion = st.radio("Selecciona una opción:", ["Registrar Estudiante", "Lista de Estudiantes", "Buscar Estudiante"], horizontal=True)
+    seccion = st.radio("Selecciona una opción:", ["Registrar Estudiante", "Lista de Estudiantes", "Estudiante"], horizontal=True)
 
     if seccion == "Registrar Estudiante":
         st.subheader("➕ Registrar nuevo estudiante")
@@ -67,7 +67,7 @@ def gestion_estudiantes():
         else:
             st.info("No hay estudiantes registrados aún.")
 
-    elif seccion == "Buscar Estudiante":
+    elif seccion == "Estudiante":
         st.subheader("🔍 Buscar estudiante")
         cursor.execute("""
             SELECT e.id, e.nombre, e.correo, e.telefono, e.tutor_nombre, e.tutor_correo, e.tutor_telefono, e.parentesco,
@@ -81,7 +81,7 @@ def gestion_estudiantes():
 
         if estudiantes:
             busqueda = st.text_input("Escribe el nombre o correo del estudiante")
-            filtrados = [e for e in estudiantes if busqueda.lower() in e['nombre'].lower() or busqueda.lower() in e['correo'].lower()]
+            filtrados = [e for e in estudiantes if busqueda.lower() in e['nombre'].lower() or busqueda.lower() in e['correo'].lower()] if busqueda else []
             if filtrados:
                 opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in filtrados}
                 seleccionado = st.selectbox("Selecciona un estudiante para ver su perfil:", list(opciones.keys()))
