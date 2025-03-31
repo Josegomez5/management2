@@ -1,16 +1,14 @@
-# modules/dashboard.py
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import date
-from modules.auth import get_connection, exportar_grafico
+from modules.auth import get_connection
 
 def mostrar_dashboard():
     st.title("📊 Panel de Control - Dashboard")
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Métricas generales
     cursor.execute("SELECT COUNT(*) AS total FROM estudiantes")
     total_estudiantes = cursor.fetchone()['total']
 
@@ -33,7 +31,6 @@ def mostrar_dashboard():
     col3.metric("Cursos", total_cursos)
     col4.metric("Pagos este mes", f"${total_pagado_mes:.2f}")
 
-    # Gráfico: pagos por día en el mes
     st.subheader("📅 Pagos por día este mes")
     cursor.execute("""
         SELECT DAY(fecha) AS dia, SUM(monto) AS total
@@ -47,7 +44,6 @@ def mostrar_dashboard():
         fig = px.bar(df_pagos, x='dia', y='total', labels={'dia': 'Día', 'total': 'Monto'}, title="Pagos diarios")
         st.plotly_chart(fig, use_container_width=True)
 
-    # Clases del día
     st.subheader("📘 Clases del día")
     hoy = date.today()
     cursor.execute("""
