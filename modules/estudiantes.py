@@ -8,7 +8,7 @@ def gestion_estudiantes():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    seccion = st.radio("Selecciona una opción:", ["Registrar Estudiante", "Lista de Estudiantes"], horizontal=True)
+    seccion = st.radio("Selecciona una opción:", ["Registrar Estudiante", "Lista de Estudiantes", "Buscar Estudiante"], horizontal=True)
 
     if seccion == "Registrar Estudiante":
         st.subheader("➕ Registrar nuevo estudiante")
@@ -40,7 +40,7 @@ def gestion_estudiantes():
                 conn.commit()
                 st.success("Estudiante registrado exitosamente")
 
-    elif seccion == "Lista de Estudiantes":
+    elif seccion in ["Lista de Estudiantes", "Buscar Estudiante"]:
         st.subheader("📋 Lista de estudiantes")
         cursor.execute("""
             SELECT e.id, e.nombre, e.correo, e.telefono, e.tutor_nombre, e.tutor_correo, e.tutor_telefono, e.parentesco,
@@ -51,37 +51,58 @@ def gestion_estudiantes():
             GROUP BY e.id
         """)
         estudiantes = cursor.fetchall()
+
         if estudiantes:
-            opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in estudiantes}
-            seleccionado = st.selectbox("Selecciona un estudiante para ver su perfil:", list(opciones.keys()))
-            estudiante_id = opciones[seleccionado]
+            df = pd.DataFrame(estudiantes)
 
-            est = next(e for e in estudiantes if e['id'] == estudiante_id)
-            st.subheader(f"📄 Perfil de {est['nombre']}")
-            st.markdown(f"**Correo:** {est['correo']}")
-            st.markdown(f"**Teléfono:** {est['telefono']}")
-            st.markdown(f"**Curso(s):** {est['cursos']}")
-            st.markdown("**👨‍👩‍👧 Tutor:**")
-            st.markdown(f"- Nombre: {est['tutor_nombre']}")
-            st.markdown(f"- Correo: {est['tutor_correo']}")
-            st.markdown(f"- Teléfono: {est['tutor_telefono']}")
-            st.markdown(f"- Parentesco: {est['parentesco']}")
+            if seccion == "Lista de Estudiantes":
+                st.dataframe(df)
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False)
+                st.download_button(
+                    label="⬇️ Descargar Excel",
+                    data=output.getvalue(),
+                    file_name="estudiantes.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
-            # Mostrar pagos
-            st.subheader("💳 Pagos")
-            cursor.execute("""
-                SELECT monto, fecha, fecha_vencimiento
-                FROM pagos
-                WHERE estudiante_id = %s
-                ORDER BY fecha DESC
-            """, (estudiante_id,))
-            pagos = cursor.fetchall()
-            if pagos:
-                df_pagos = pd.DataFrame(pagos)
-                st.dataframe(df_pagos)
-                prox = min(p['fecha_vencimiento'] for p in pagos if p['fecha_vencimiento'])
-                st.info(f"📆 Próximo vencimiento: {prox}")
-            else:
-                st.warning("Este estudiante no tiene pagos registrados.")
+            st.subheader("🔍 Buscar estudiante")
+            busqueda = st.text_input("Escribe el nombre o correo del estudiante")
+            filtrados = [e for e in estudiantes if busqueda.lower() in e['nombre'].lower() or busqueda.lower() in e['correo'].lower()]
+            if filtrados:
+                opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in filtrados}
+                seleccionado = st.selectbox("Selecciona un estudiante para ver su perfil:", list(opciones.keys()))
+                estudiante_id = opciones[seleccionado]
+
+                est = next(e for e in estudiantes if e['id'] == estudiante_id)
+                st.subheader(f"📄 Perfil de {est['nombre']}")
+                st.markdown(f"**Correo:** {est['correo']}")
+                st.markdown(f"**Teléfono:** {est['telefono']}")
+                st.markdown(f"**Curso(s):** {est['cursos']}")
+                st.markdown("**👨‍👩‍👧 Tutor:**")
+                st.markdown(f"- Nombre: {est['tutor_nombre']}")
+                st.markdown(f"- Correo: {est['tutor_correo']}")
+                st.markdown(f"- Teléfono: {est['tutor_telefono']}")
+                st.markdown(f"- Parentesco: {est['parentesco']}")
+
+                # Mostrar pagos
+                st.subheader("💳 Pagos")
+                cursor.execute("""
+                    SELECT monto, fecha, fecha_vencimiento
+                    FROM pagos
+                    WHERE estudiante_id = %s
+                    ORDER BY fecha DESC
+                """, (estudiante_id,))
+                pagos = cursor.fetchall()
+                if pagos:
+                    df_pagos = pd.DataFrame(pagos)
+                    st.dataframe(df_pagos)
+                    prox = min(p['fecha_vencimiento'] for p in pagos if p['fecha_vencimiento'])
+                    st.info(f"📆 Próximo vencimiento: {prox}")
+                else:
+                    st.warning("Este estudiante no tiene pagos registrados.")
+            elif busqueda:
+                st.warning("No se encontraron estudiantes con ese término.")
         else:
             st.info("No hay estudiantes registrados aún.")
