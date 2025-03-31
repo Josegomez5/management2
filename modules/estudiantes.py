@@ -165,6 +165,17 @@ def gestion_estudiantes():
                     if asistencia:
                         df_asistencia = pd.DataFrame(asistencia)
                         st.dataframe(df_asistencia)
+
+                        output = io.BytesIO()
+                        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                            df_asistencia.to_excel(writer, index=False)
+
+                        st.download_button(
+                            label="⬇️ Descargar asistencia",
+                            data=output.getvalue(),
+                            file_name="asistencia_estudiante.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
                     else:
                         st.info("No hay registros de asistencia para este estudiante.")
 
