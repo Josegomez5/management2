@@ -1,1 +1,38 @@
-# módulo estudiantes
+# modules/estudiantes.py
+import streamlit as st
+import pandas as pd
+from modules.auth import get_connection
+
+def gestion_estudiantes():
+    st.title("🧑‍🎓 Gestión de Estudiantes")
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    st.subheader("➕ Registrar nuevo estudiante")
+    with st.form("form_estudiante"):
+        nombre = st.text_input("Nombre completo")
+        correo = st.text_input("Correo electrónico")
+        telefono = st.text_input("Teléfono")
+        tutor_nombre = st.text_input("Nombre del tutor")
+        tutor_correo = st.text_input("Correo del tutor")
+        tutor_telefono = st.text_input("Teléfono del tutor")
+        parentesco = st.selectbox("Parentesco", ["Padre", "Madre", "Tío/a", "Otro"])
+        submit = st.form_submit_button("Guardar")
+
+        if submit:
+            cursor.execute("""
+                INSERT INTO estudiantes (nombre, correo, telefono, tutor_nombre, tutor_correo, tutor_telefono, parentesco)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (nombre, correo, telefono, tutor_nombre, tutor_correo, tutor_telefono, parentesco))
+            conn.commit()
+            st.success("Estudiante registrado exitosamente")
+
+    st.subheader("📋 Lista de estudiantes")
+    cursor.execute("SELECT * FROM estudiantes")
+    estudiantes = cursor.fetchall()
+    if estudiantes:
+        df = pd.DataFrame(estudiantes)
+        st.dataframe(df)
+        st.download_button("⬇️ Descargar Excel", data=df.to_excel(index=False), file_name="estudiantes.xlsx")
+    else:
+        st.info("No hay estudiantes registrados aún.")
