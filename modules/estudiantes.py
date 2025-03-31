@@ -80,14 +80,19 @@ def gestion_estudiantes():
         estudiantes = cursor.fetchall()
 
         if estudiantes:
-            busqueda = st.text_input("Escribe el nombre o correo del estudiante")
-            filtrados = [e for e in estudiantes if busqueda.lower() in e['nombre'].lower() or busqueda.lower() in e['correo'].lower()] if busqueda else []
-            if filtrados:
-                opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in filtrados}
-                seleccionado = st.selectbox("Selecciona un estudiante para ver su perfil:", list(opciones.keys()))
-                estudiante_id = opciones[seleccionado]
+            busqueda = st.text_input("Buscar por nombre o correo")
+            opciones = {f"{e['nombre']} ({e['correo']})": e['id'] for e in estudiantes}
 
+            # Filtrar por búsqueda
+            if busqueda:
+                opciones = {k: v for k, v in opciones.items() if busqueda.lower() in k.lower()}
+
+            seleccionado = st.selectbox("Selecciona un estudiante:", ["-- Seleccionar --"] + list(opciones.keys()))
+
+            if seleccionado != "-- Seleccionar --":
+                estudiante_id = opciones[seleccionado]
                 est = next(e for e in estudiantes if e['id'] == estudiante_id)
+
                 st.subheader(f"📄 Perfil de {est['nombre']}")
                 st.markdown(f"**Correo:** {est['correo']}")
                 st.markdown(f"**Teléfono:** {est['telefono']}")
@@ -114,7 +119,5 @@ def gestion_estudiantes():
                     st.info(f"📆 Próximo vencimiento: {prox}")
                 else:
                     st.warning("Este estudiante no tiene pagos registrados.")
-            elif busqueda:
-                st.warning("No se encontraron estudiantes con ese término.")
         else:
             st.info("No hay estudiantes registrados aún.")
