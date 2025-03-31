@@ -1,5 +1,6 @@
 import streamlit as st
 from modules.auth import login
+from modules.dashboard import mostrar_dashboard
 
 st.set_page_config(layout="wide")
 
@@ -11,4 +12,8 @@ if not st.session_state.autenticado:
 else:
     st.title("🎓 Bienvenido al Sistema Académico")
     st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
-    st.write("Aquí irán los módulos según el rol.")
+
+    if st.session_state.rol == "admin":
+        mostrar_dashboard()
+    else:
+        st.info("Módulos aún no disponibles para este rol.")
