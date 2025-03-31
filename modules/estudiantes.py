@@ -138,24 +138,35 @@ def gestion_estudiantes():
                         st.success("Datos actualizados correctamente")
                 
 
-                # Mostrar pagos
-                st.subheader("💳 Pagos")
-                cursor.execute("""
-                    SELECT monto, fecha, fecha_vencimiento
-                    FROM pagos
-                    WHERE estudiante_id = %s
-                    ORDER BY fecha DESC
-                """, (estudiante_id,))
-                pagos = cursor.fetchall()
-                if pagos:
-                    df_pagos = pd.DataFrame(pagos)
-                    st.dataframe(df_pagos)
-                    prox = min(p['fecha_vencimiento'] for p in pagos if p['fecha_vencimiento'])
-                    st.info(f"📆 Próximo vencimiento: {prox}")
-                else:
-                    st.warning("Este estudiante no tiene pagos registrados.")
+                # Mostrar pagos y asistencia en columnas
+                colp1, colp2 = st.columns(2)
 
-                # Mostrar asistencia
+                with colp1:
+                    st.subheader("💳 Pagos")
+                    cursor.execute("""
+                        SELECT monto, fecha, fecha_vencimiento
+                        FROM pagos
+                        WHERE estudiante_id = %s
+                        ORDER BY fecha DESC
+                    """, (estudiante_id,))
+                    pagos = cursor.fetchall()
+                    if pagos:
+                        df_pagos = pd.DataFrame(pagos)
+                        st.dataframe(df_pagos)
+                        prox = min(p['fecha_vencimiento'] for p in pagos if p['fecha_vencimiento'])
+                        st.info(f"📆 Próximo vencimiento: {prox}")
+                    else:
+                        st.warning("Este estudiante no tiene pagos registrados.")
+
+                with colp2:
+                    st.subheader("📅 Asistencia")
+                    cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
+                    asistencia = cursor.fetchall()
+                    if asistencia:
+                        df_asistencia = pd.DataFrame(asistencia)
+                        st.dataframe(df_asistencia)
+                    else:
+                        st.info("No hay registros de asistencia para este estudiante.")
                 st.subheader("📅 Asistencia")
                 cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
                 asistencia = cursor.fetchall()
