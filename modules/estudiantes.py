@@ -128,7 +128,14 @@ def gestion_estudiantes():
                         cursor.execute("INSERT INTO estudiante_curso (estudiante_id, curso_id) VALUES (%s, %s)", (estudiante_id, cursos_dict[nuevo_curso]))
                         conn.commit()
                         st.success("Datos actualizados correctamente")
-                
+                st.markdown(f"**Correo:** {est['correo']}")
+                st.markdown(f"**Teléfono:** {est['telefono']}")
+                st.markdown(f"**Curso(s):** {est['cursos']}")
+                st.markdown("**👨‍👩‍👧 Tutor:**")
+                st.markdown(f"- Nombre: {est['tutor_nombre']}")
+                st.markdown(f"- Correo: {est['tutor_correo']}")
+                st.markdown(f"- Teléfono: {est['tutor_telefono']}")
+                st.markdown(f"- Parentesco: {est['parentesco']}")
 
                 # Mostrar pagos
                 st.subheader("💳 Pagos")
