@@ -65,7 +65,26 @@ def gestion_estudiantes():
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.info("No hay estudiantes registrados aún.")
+        st.info("No hay estudiantes registrados aún.")
+
+    # Registro general de pagos
+    st.markdown("---")
+    st.subheader("💸 Registrar pago de cualquier estudiante")
+    cursor.execute("SELECT id, nombre FROM estudiantes ORDER BY nombre")
+    est_pagables = cursor.fetchall()
+    if est_pagables:
+        est_nombres = {f"{e['nombre']} (ID {e['id']})": e['id'] for e in est_pagables}
+        with st.form("form_pago_general"):
+            estudiante_sel = st.selectbox("Selecciona estudiante", list(est_nombres.keys()))
+            monto_pago = st.number_input("Monto del pago", min_value=0.0, step=0.5)
+            fecha_pago = st.date_input("Fecha del pago", value=date.today())
+            fecha_ven = st.date_input("Fecha de vencimiento")
+            enviar_pago = st.form_submit_button("Registrar pago")
+            if enviar_pago:
+                cursor.execute("INSERT INTO pagos (estudiante_id, monto, fecha, fecha_vencimiento) VALUES (%s, %s, %s, %s)",
+                               (est_nombres[estudiante_sel], monto_pago, fecha_pago, fecha_ven))
+                conn.commit()
+                st.success("Pago registrado correctamente")
 
     elif seccion == "Estudiante":
         st.subheader("🔍 Buscar estudiante")
@@ -180,7 +199,9 @@ def gestion_estudiantes():
                         st.info("No hay registros de asistencia para este estudiante.")
 
                 st.markdown("---")
-                st.subheader("✏️ Registrar o actualizar asistencia")
+                colreg1, colreg2 = st.columns(2)
+                with colreg1:
+                    st.subheader("✏️ Registrar o actualizar asistencia")
                 fecha_asistencia = st.date_input("Fecha de asistencia")
                 estado_asistencia = st.selectbox("Estado", ["presente", "ausente"])
 
@@ -189,7 +210,7 @@ def gestion_estudiantes():
                 curso_info = cursor.fetchone()
                 curso_id = curso_info['curso_id'] if curso_info else None
 
-                if st.button("Guardar asistencia"):
+                                if st.button("Guardar asistencia", key="asistencia_btn"):
                     cursor.execute("SELECT * FROM asistencia WHERE estudiante_id = %s AND fecha = %s", (estudiante_id, fecha_asistencia))
                     existente = cursor.fetchone()
                     if existente:
