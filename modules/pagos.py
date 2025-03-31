@@ -46,4 +46,3 @@ def gestion_pagos():
         st.download_button("⬇️ Descargar Excel", data=output.getvalue(), file_name="pagos.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     else:
         st.info("No hay pagos registrados aún.")
-# módulo pagos
