@@ -108,7 +108,8 @@ def gestion_estudiantes():
                     cursos_dict = {c['nombre']: c['id'] for c in cursos_all}
                     cursor.execute("SELECT curso_id FROM estudiante_curso WHERE estudiante_id = %s LIMIT 1", (estudiante_id,))
                     actual_curso_id = cursor.fetchone()
-                    actual_curso_nombre = next((k for k, v in cursos_dict.items() if v == actual_curso_id['curso_id']), None)
+                   curso_id_actual = actual_curso_id['curso_id'] if actual_curso_id else None
+                    actual_curso_nombre = next((k for k, v in cursos_dict.items() if v == curso_id_actual), None)
                     nuevo_curso = st.selectbox("Curso", list(cursos_dict.keys()), index=list(cursos_dict.keys()).index(actual_curso_nombre) if actual_curso_nombre else 0)
 
                     if st.form_submit_button("Actualizar datos"):
