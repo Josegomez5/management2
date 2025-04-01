@@ -1,40 +1,33 @@
-
 import streamlit as st
 from modules.auth import login
 from modules.dashboard import mostrar_dashboard
 from modules.estudiantes import gestion_estudiantes
-#from modules.profesores import gestion_profesores
-#from modules.cursos import gestion_cursos
-from modules.pagos import gestion_pagos
 from modules.asistencia import gestion_asistencia
+from modules.pagos import gestion_pagos
 
-st.set_page_config(page_title="Academia", layout="wide")
 
-def main():
-    if login():
-        st.sidebar.title("Menú principal")
-        opciones = [
-            "Dashboard",
-            "Estudiantes",
-            "Profesores",
-            "Cursos",
-            "Pagos",
-            "Asistencia"
-        ]
-        eleccion = st.sidebar.radio("Ir a", opciones)
+st.set_page_config(layout="wide")
 
-        if eleccion == "Dashboard":
+if 'autenticado' not in st.session_state:
+    st.session_state.autenticado = False
+
+if not st.session_state.autenticado:
+    login()
+else:
+    st.title("🎓 Bienvenido al Sistema Académico")
+    st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
+
+    if st.session_state.rol == "admin":
+        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos"]
+        opcion = st.sidebar.radio("Menú", menu)
+
+        if opcion == "Dashboard":
             mostrar_dashboard()
-        elif eleccion == "Estudiantes":
+        elif opcion == "Estudiantes":
             gestion_estudiantes()
-        elif eleccion == "Profesores":
-            gestion_profesores()
-        elif eleccion == "Cursos":
-            gestion_cursos()
-        elif eleccion == "Pagos":
-            gestion_pagos()
-        elif eleccion == "Asistencia":
+        elif opcion == "Asistencia":
             gestion_asistencia()
-
-if __name__ == "__main__":
-    main()
+        elif opcion == "Pagos":
+            gestion_pagos()
+    else:
+        st.info("Módulos aún no disponibles para este rol.")
