@@ -116,7 +116,7 @@ def gestion_estudiantes():
                         nuevo_correo = st.text_input("Correo electrónico", value=est['correo'])
                         nuevo_telefono = st.text_input("Teléfono", value=est['telefono'])
                         nuevo_tutor = st.text_input("Nombre del tutor", value=est['tutor_nombre'])
-                        nuevo_tutor_correo = st.text_input("Correo del tutor", value=est['tutor_correo'])
+                        nuevo_tutor_correo = st.text_input("Correo del tutor", vél tealue=est['tutor_correo'])
                         nuevo_tutor_tel = st.text_input("Teléfono del tutor", value=est['tutor_telefono'])
                         nuevo_parentesco = st.selectbox("Parentesco", ["Padre", "Madre", "Tío/a", "Otro"], index=["Padre", "Madre", "Tío/a", "Otro"].index(est['parentesco']))
 
@@ -146,13 +146,20 @@ def gestion_estudiantes():
                     st.markdown("### 💳 Pagos")
                     st.markdown("---")
                     cursor.execute("""
-                        SELECT monto, fecha, fecha_vencimiento
+                        SELECT monto, fecha, fecha_vencimiento, clases_pagadas
                         FROM pagos
                         WHERE estudiante_id = %s
                         ORDER BY fecha DESC
                     """, (estudiante_id,))
                     pagos = cursor.fetchall()
                     if pagos:
+                        total_pagadas = sum(p['clases_pagadas'] for p in pagos)
+                        cursor.execute("SELECT COUNT(*) as asistidas FROM asistencia WHERE estudiante_id = %s AND estado = 'presente'", (estudiante_id,))
+                        total_asistidas = cursor.fetchone()['asistidas']
+                        clases_restantes = total_pagadas - total_asistidas
+                        st.info(f"✅ Clases pagadas: {total_pagadas} | 🎯 Asistencias: {total_asistidas} | 📉 Restantes: {clases_restantes}")
+                        if clases_restantes <= 2:
+                            st.warning("⚠️ Este estudiante está cerca de agotar sus clases pagadas")
                         df_pagos = pd.DataFrame(pagos)
                         st.dataframe(df_pagos)
                         prox = min(p['fecha_vencimiento'] for p in pagos if p['fecha_vencimiento'])
@@ -202,8 +209,9 @@ def gestion_estudiantes():
                     monto = st.number_input("Monto", min_value=0.0, step=0.5, key="monto_pago")
                     fecha_pago = st.date_input("Fecha del pago", value=date.today(), key="fecha_pago")
                     fecha_ven = st.date_input("Fecha de vencimiento", key="fecha_ven")
+                    clases_pagadas = st.number_input("Clases pagadas", min_value=1, step=1, key="clases_pagadas")
                     if st.button("Guardar pago", key="guardar_pago"):
-                        cursor.execute("INSERT INTO pagos (estudiante_id, monto, fecha, fecha_vencimiento) VALUES (%s, %s, %s, %s)",
-                                       (estudiante_id, monto, fecha_pago, fecha_ven))
+                            cursor.execute("INSERT INTO pagos (estudiante_id, monto, fecha, fecha_vencimiento, clases_pagadas) VALUES (%s, %s, %s, %s, %s)",
+                                       (estudiante_id, monto, fecha_pago, fecha_ven, clases_pagadas))
                         conn.commit()
                         st.rerun()
