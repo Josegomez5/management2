@@ -56,17 +56,50 @@ def mostrar_dashboard():
         st.metric("💰 Pagado este mes", f"${total_pagado:.2f}")
 
     st.markdown("---")
+
+    # 📈 Gráfico de pagos del mes
+    with st.expander("📈 Pagos del mes", expanded=True):
+        cursor.execute("""
+            SELECT DAY(fecha) as dia, SUM(monto) as total
+            FROM pagos
+            WHERE MONTH(fecha) = MONTH(CURRENT_DATE()) AND YEAR(fecha) = YEAR(CURRENT_DATE())
+            GROUP BY dia ORDER BY dia
+        """)
+        pagos_dia = cursor.fetchall()
+        if pagos_dia:
+            df_pagos_dia = pd.DataFrame(pagos_dia)
+            st.line_chart(df_pagos_dia.set_index("dia"))
+        else:
+            st.info("No hay pagos registrados este mes")
+
+    # 📅 Clases del día
+    with st.expander("📅 Clases del día", expanded=True):
+        cursor.execute("""
+            SELECT c.nombre as curso, cl.hora_inicio, cl.hora_fin, p.nombre as profesor
+            FROM clases cl
+            JOIN cursos c ON c.id = cl.curso_id
+            JOIN profesores p ON p.id = cl.profesor_id
+            WHERE cl.fecha = CURDATE()
+            ORDER BY cl.hora_inicio
+        """)
+        clases_hoy = cursor.fetchall()
+        if clases_hoy:
+            df_clases = pd.DataFrame(clases_hoy)
+            st.dataframe(df_clases)
+        else:
+            st.info("No hay clases programadas para hoy")
+
     with st.expander("📆 Próximos vencimientos de pago", expanded=True):
         if vencimientos:
-        df_vencimientos = pd.DataFrame(vencimientos)
-        st.table(df_vencimientos)
-    else:
-        st.info("No hay vencimientos próximos registrados")
+            df_vencimientos = pd.DataFrame(vencimientos)
+            st.table(df_vencimientos)
+        else:
+            st.info("No hay vencimientos próximos registrados")
 
     st.markdown("---")
     with st.expander("🔔 Alertas de clases", expanded=True):
         if alertas:
-        df_alertas = pd.DataFrame(alertas)
-        st.table(df_alertas)
-    else:
-        st.success("Todos los estudiantes tienen clases suficientes")
+            df_alertas = pd.DataFrame(alertas)
+            st.table(df_alertas)
+        else:
+            st.success("Todos los estudiantes tienen clases suficientes")
