@@ -97,7 +97,7 @@ def gestion_estudiantes():
                     st.markdown("### 📄 Información del estudiante")
                     st.markdown(f"**Correo:** {est['correo']}")
                     st.markdown(f"**Teléfono:** {est['telefono']}")
-                    
+                                        
                     
                     
                 st.markdown(f"**Curso(s):** {est['cursos']}")
