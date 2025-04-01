@@ -1,62 +1,72 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-from datetime import date
 from modules.auth import get_connection
 
 def mostrar_dashboard():
-    st.title("📊 Panel de Control - Dashboard")
+    st.title("📊 Panel de Control")
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT COUNT(*) AS total FROM estudiantes")
-    total_estudiantes = cursor.fetchone()['total']
+    # Número total de estudiantes activos
+    cursor.execute("SELECT COUNT(*) as total FROM estudiantes")
+    total_estudiantes = cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) AS total FROM profesores")
-    total_profesores = cursor.fetchone()['total']
-
-    cursor.execute("SELECT COUNT(*) AS total FROM cursos")
-    total_cursos = cursor.fetchone()['total']
-
+    # Total pagado este mes
     cursor.execute("""
-        SELECT SUM(monto) AS total_pagado
-        FROM pagos
-        WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())
+        SELECT SUM(monto) as total_pagado 
+        FROM pagos 
+        WHERE MONTH(fecha) = MONTH(CURRENT_DATE()) AND YEAR(fecha) = YEAR(CURRENT_DATE())
     """)
-    total_pagado_mes = cursor.fetchone()['total_pagado'] or 0
+    total_pagado = cursor.fetchone()["total_pagado"] or 0
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Estudiantes", total_estudiantes)
-    col2.metric("Profesores", total_profesores)
-    col3.metric("Cursos", total_cursos)
-    col4.metric("Pagos este mes", f"${total_pagado_mes:.2f}")
-
-    st.subheader("📅 Pagos por día este mes")
+    # Próximos vencimientos
     cursor.execute("""
-        SELECT DAY(fecha) AS dia, SUM(monto) AS total
-        FROM pagos
-        WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())
-        GROUP BY dia ORDER BY dia
+        SELECT e.nombre, p.fecha_vencimiento 
+        FROM pagos p 
+        JOIN estudiantes e ON e.id = p.estudiante_id 
+        WHERE p.fecha_vencimiento >= CURDATE()
+        ORDER BY p.fecha_vencimiento ASC
+        LIMIT 5
     """)
-    pagos_dia = cursor.fetchall()
-    if pagos_dia:
-        df_pagos = pd.DataFrame(pagos_dia)
-        fig = px.bar(df_pagos, x='dia', y='total', labels={'dia': 'Día', 'total': 'Monto'}, title="Pagos diarios")
-        st.plotly_chart(fig, use_container_width=True)
+    vencimientos = cursor.fetchall()
 
-    st.subheader("📘 Clases del día")
-    hoy = date.today()
-    cursor.execute("""
-        SELECT c.nombre AS curso, p.nombre AS profesor, cl.hora_inicio, cl.hora_fin
-        FROM clases cl
-        JOIN cursos c ON cl.curso_id = c.id
-        JOIN profesores p ON cl.profesor_id = p.id
-        WHERE cl.fecha = %s
-        ORDER BY cl.hora_inicio
-    """, (hoy,))
-    clases_hoy = cursor.fetchall()
-    if clases_hoy:
-        df_clases = pd.DataFrame(clases_hoy)
-        st.dataframe(df_clases)
+    # Alerta de clases restantes
+    cursor.execute("SELECT id, nombre FROM estudiantes")
+    estudiantes = cursor.fetchall()
+    alertas = []
+
+    for est in estudiantes:
+        cursor.execute("SELECT SUM(clases_pagadas) as pagadas FROM pagos WHERE estudiante_id = %s", (est["id"],))
+        pagadas = cursor.fetchone()["pagadas"] or 0
+
+        cursor.execute("SELECT COUNT(*) as asistidas FROM asistencia WHERE estudiante_id = %s AND estado = 'presente'", (est["id"],))
+        asistidas = cursor.fetchone()["asistidas"]
+
+        restantes = pagadas - asistidas
+        if restantes == 1:
+            alertas.append({"nombre": est["nombre"], "estado": "⚠️ 1 clase restante"})
+        elif restantes <= 0:
+            alertas.append({"nombre": est["nombre"], "estado": "🚨 Sin clases disponibles"})
+
+    # Mostrar tarjetas resumen
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("🎓 Estudiantes activos", total_estudiantes)
+    with col2:
+        st.metric("💰 Pagado este mes", f"${total_pagado:.2f}")
+
+    st.markdown("---")
+    st.subheader("📆 Próximos vencimientos de pago")
+    if vencimientos:
+        df_vencimientos = pd.DataFrame(vencimientos)
+        st.table(df_vencimientos)
     else:
-        st.info("No hay clases programadas para hoy.")
+        st.info("No hay vencimientos próximos registrados")
+
+    st.markdown("---")
+    st.subheader("🔔 Alertas de clases")
+    if alertas:
+        df_alertas = pd.DataFrame(alertas)
+        st.table(df_alertas)
+    else:
+        st.success("Todos los estudiantes tienen clases suficientes")
