@@ -22,7 +22,7 @@ else:
     st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
 
     if st.session_state.rol == "admin":
-        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos", "Profesores"]
+        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos", "Profesores", "Cursos"]
         opcion = st.sidebar.radio("Menú", menu)
 
         if opcion == "Dashboard":
@@ -34,6 +34,8 @@ else:
         elif opcion == "Pagos":
             gestion_pagos()
         elif opcion == "Profesores":
+            gestion_profesores()
+        elif opcion == "Cursos":
             gestion_profesores()
     else:
         st.info("Módulos aún no disponibles para este rol.")
