@@ -4,7 +4,7 @@ from modules.auth import login
 from modules.dashboard import mostrar_dashboard
 from modules.estudiantes import gestion_estudiantes
 from modules.profesores import gestion_profesores
-from modules.cursos import gestion_cursos
+#from modules.cursos import gestion_cursos
 from modules.pagos import gestion_pagos
 from modules.asistencia import gestion_asistencia
 
