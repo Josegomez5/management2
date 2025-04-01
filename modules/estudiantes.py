@@ -145,8 +145,6 @@ def gestion_estudiantes():
                 with colp1:
                     st.markdown("### 💳 Pagos")
                     st.markdown("---")
-st.markdown("---")
-                    st.subheader("💳 Pagos")
                     cursor.execute("""
                         SELECT monto, fecha, fecha_vencimiento
                         FROM pagos
@@ -165,8 +163,6 @@ st.markdown("---")
                 with colp2:
                     st.markdown("### 📅 Asistencia")
                     st.markdown("---")
-st.markdown("---")
-                    st.subheader("📅 Asistencia")
                     cursor.execute("SELECT fecha, estado FROM asistencia WHERE estudiante_id = %s ORDER BY fecha DESC", (estudiante_id,))
                     asistencia = cursor.fetchall()
                     if asistencia:
@@ -183,8 +179,6 @@ st.markdown("---")
                 with colreg1:
                     st.markdown("### ✏️ Registrar Asistencia")
                     st.markdown("---")
-st.markdown("---")
-                    st.subheader("✏️ Registrar o actualizar asistencia")
                     cursor.execute("SELECT curso_id FROM estudiante_curso WHERE estudiante_id = %s LIMIT 1", (estudiante_id,))
                     curso_info = cursor.fetchone()
                     curso_id = curso_info['curso_id'] if curso_info else None
@@ -205,8 +199,6 @@ st.markdown("---")
                 with colreg2:
                     st.markdown("### 💸 Registrar Pago")
                     st.markdown("---")
-st.markdown("---")
-                    st.subheader("💳 Registrar pago individual")
                     monto = st.number_input("Monto", min_value=0.0, step=0.5, key="monto_pago")
                     fecha_pago = st.date_input("Fecha del pago", value=date.today(), key="fecha_pago")
                     fecha_ven = st.date_input("Fecha de vencimiento", key="fecha_ven")
