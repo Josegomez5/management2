@@ -17,6 +17,9 @@
                 colreg1, colreg2 = st.columns(2)
                 with colreg1:
                     st.subheader("✏️ Registrar o actualizar asistencia")
+                    cursor.execute("SELECT curso_id FROM estudiante_curso WHERE estudiante_id = %s LIMIT 1", (estudiante_id,))
+                    curso_info = cursor.fetchone()
+                    curso_id = curso_info['curso_id'] if curso_info else None
                     fecha_asistencia = st.date_input("Fecha de asistencia")
                     estado_asistencia = st.selectbox("Estado", ["presente", "ausente"])
                     if st.button("Guardar asistencia", key="guardar_asistencia"):
