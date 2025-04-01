@@ -92,9 +92,11 @@ def gestion_estudiantes():
                 est = next(e for e in estudiantes if e['id'] == estudiante_id)
 
                 st.subheader(f"📄 Perfil de {est['nombre']}")
-                col_info, col_edit = st.columns(2)
+                col_info, col_edit = st.columns([2, 3])
                 with col_info:
                     st.markdown(f"**Correo:** {est['correo']}")
+                    st.markdown(f"**Teléfono:** {est['telefono']}")
+                    
                 st.markdown(f"**Curso(s):** {est['cursos']}")
                 st.markdown("**👨‍👩‍👧 Tutor:**")
                 st.markdown(f"- Nombre: {est['tutor_nombre']}")
