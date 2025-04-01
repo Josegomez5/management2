@@ -92,6 +92,8 @@ def gestion_estudiantes():
                 est = next(e for e in estudiantes if e['id'] == estudiante_id)
 
                 st.subheader(f"📄 Perfil de {est['nombre']}")
+                col_info, col_edit = st.columns(2)
+                with col_info:
                 st.markdown(f"**Correo:** {est['correo']}")
                 st.markdown(f"**Teléfono:** {est['telefono']}")
                 st.markdown(f"**Curso(s):** {est['cursos']}")
@@ -101,7 +103,9 @@ def gestion_estudiantes():
                 st.markdown(f"- Teléfono: {est['tutor_telefono']}")
                 st.markdown(f"- Parentesco: {est['parentesco']}")
 
-                # Sección para editar los datos del estudiante
+                with col_edit:
+                    with st.form("editar_estudiante"):
+                        st.markdown("### ✏️ Editar datos")
                 with st.form("editar_estudiante"):
                     st.markdown("### ✏️ Editar datos")
                     nuevo_nombre = st.text_input("Nombre completo", value=est['nombre'])
