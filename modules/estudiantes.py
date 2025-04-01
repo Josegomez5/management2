@@ -158,7 +158,7 @@ def gestion_estudiantes():
                         total_asistidas = cursor.fetchone()['asistidas']
                         clases_restantes = total_pagadas - total_asistidas
                         st.info(f"✅ Clases pagadas: {total_pagadas} | 🎯 Asistencias: {total_asistidas} | 📉 Restantes: {clases_restantes}")
-                        if clases_restantes <= 2:
+                        if clases_restantes == 1:
                             st.warning("⚠️ Este estudiante está cerca de agotar sus clases pagadas")
                         df_pagos = pd.DataFrame(pagos)
                         st.dataframe(df_pagos)
