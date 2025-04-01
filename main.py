@@ -12,7 +12,6 @@ st.set_page_config(page_title="Academia", layout="wide")
 
 def main():
     if login():
-        st.success("✅ Login correcto")
         st.sidebar.title("Menú principal")
         opciones = [
             "Dashboard",
