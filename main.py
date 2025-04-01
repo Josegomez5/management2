@@ -5,7 +5,7 @@ from modules.estudiantes import gestion_estudiantes
 from modules.profesores import gestion_profesores
 from modules.cursos import gestion_cursos
 from modules.asistencia import gestion_asistencia
-#from modules.clases import gestion_clases
+from modules.clases import gestion_clases
 #from modules.calificaciones import gestion_calificaciones
 from modules.pagos import gestion_pagos
 
@@ -22,7 +22,7 @@ else:
     st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
 
     if st.session_state.rol == "admin":
-        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos", "Profesores", "Cursos"]
+        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos", "Profesores", "Cursos", "Clases"]
         opcion = st.sidebar.radio("Menú", menu)
 
         if opcion == "Dashboard":
@@ -37,5 +37,7 @@ else:
             gestion_profesores()
         elif opcion == "Cursos":
             gestion_cursos()
+        elif opcion == "Clases":
+            gestion_clases()
     else:
         st.info("Módulos aún no disponibles para este rol.")
