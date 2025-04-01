@@ -36,6 +36,6 @@ else:
         elif opcion == "Profesores":
             gestion_profesores()
         elif opcion == "Cursos":
-            gestion_profesores()
+            gestion_cursos()
     else:
         st.info("Módulos aún no disponibles para este rol.")
