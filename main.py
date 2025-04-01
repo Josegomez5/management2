@@ -22,7 +22,7 @@ else:
     st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
 
     if st.session_state.rol == "admin":
-        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos"]
+        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos", "Profesores"]
         opcion = st.sidebar.radio("Menú", menu)
 
         if opcion == "Dashboard":
