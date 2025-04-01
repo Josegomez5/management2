@@ -104,9 +104,9 @@ def gestion_estudiantes():
                 st.markdown(f"- Parentesco: {est['parentesco']}")
 
                 with col_edit:
-                    
-
-                # Mostrar pagos y asistencia en columnas
+                    st.markdown("### ✏️ Editar datos")
+                    st.info("Formulario de edición aún no implementado")
+# Mostrar pagos y asistencia en columnas
                 colp1, colp2 = st.columns(2)
 
                 with colp1:
