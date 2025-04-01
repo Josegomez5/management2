@@ -57,7 +57,7 @@ def mostrar_dashboard():
 
     st.markdown("---")
     with st.expander("📆 Próximos vencimientos de pago", expanded=True):
-    if vencimientos:
+        if vencimientos:
         df_vencimientos = pd.DataFrame(vencimientos)
         st.table(df_vencimientos)
     else:
@@ -65,7 +65,7 @@ def mostrar_dashboard():
 
     st.markdown("---")
     with st.expander("🔔 Alertas de clases", expanded=True):
-    if alertas:
+        if alertas:
         df_alertas = pd.DataFrame(alertas)
         st.table(df_alertas)
     else:
