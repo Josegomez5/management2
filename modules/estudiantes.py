@@ -137,8 +137,7 @@ def gestion_estudiantes():
                     curso_id_actual = actual_curso_id['curso_id'] if actual_curso_id else None
                     actual_curso_nombre = next((k for k, v in cursos_dict.items() if v == curso_id_actual), None)
                     nuevo_curso = st.selectbox("Curso", list(cursos_dict.keys()), index=list(cursos_dict.keys()).index(actual_curso_nombre) if actual_curso_nombre else 0)
-
-                            if st.form_submit_button("Actualizar datos"):
+                        if st.form_submit_button("Actualizar datos"):
                         cursor.execute("""
                             UPDATE estudiantes SET nombre=%s, correo=%s, telefono=%s,
                             tutor_nombre=%s, tutor_correo=%s, tutor_telefono=%s, parentesco=%s
