@@ -1,43 +1,49 @@
+
 import streamlit as st
 from modules.auth import login
 from modules.dashboard import mostrar_dashboard
 from modules.estudiantes import gestion_estudiantes
 from modules.profesores import gestion_profesores
 from modules.cursos import gestion_cursos
-from modules.asistencia import gestion_asistencia
 from modules.clases import gestion_clases
-#from modules.calificaciones import gestion_calificaciones
 from modules.pagos import gestion_pagos
+from modules.asistencia import gestion_asistencia
 
+st.set_page_config(page_title="Academia", layout="wide")
 
-st.set_page_config(layout="wide")
+def main():
+    if "autenticado" not in st.session_state:
+        st.session_state["autenticado"] = False
 
-if 'autenticado' not in st.session_state:
-    st.session_state.autenticado = False
+    if st.session_state["autenticado"]:
+        st.sidebar.title("Menú principal")
+        opciones = [
+            "Dashboard",
+            "Estudiantes",
+            "Profesores",
+            "Cursos",
+            "Clases",
+            "Pagos",
+            "Asistencia"
+        ]
+        eleccion = st.sidebar.radio("Ir a", opciones)
 
-if not st.session_state.autenticado:
-    login()
-else:
-    st.title("🎓 Bienvenido al Sistema Académico")
-    st.write(f"Has iniciado sesión como: **{st.session_state.rol}**")
-
-    if st.session_state.rol == "admin":
-        menu = ["Dashboard", "Estudiantes", "Asistencia", "Pagos", "Profesores", "Cursos", "Clases"]
-        opcion = st.sidebar.radio("Menú", menu)
-
-        if opcion == "Dashboard":
+        if eleccion == "Dashboard":
             mostrar_dashboard()
-        elif opcion == "Estudiantes":
+        elif eleccion == "Estudiantes":
             gestion_estudiantes()
-        elif opcion == "Asistencia":
-            gestion_asistencia()
-        elif opcion == "Pagos":
-            gestion_pagos()
-        elif opcion == "Profesores":
+        elif eleccion == "Profesores":
             gestion_profesores()
-        elif opcion == "Cursos":
+        elif eleccion == "Cursos":
             gestion_cursos()
-        elif opcion == "Clases":
+        elif eleccion == "Clases":
             gestion_clases()
+        elif eleccion == "Pagos":
+            gestion_pagos()
+        elif eleccion == "Asistencia":
+            gestion_asistencia()
     else:
-        st.info("Módulos aún no disponibles para este rol.")
+        login()
+
+if __name__ == "__main__":
+    main()
