@@ -116,7 +116,7 @@ def gestion_estudiantes():
                         nuevo_correo = st.text_input("Correo electrónico", value=est['correo'])
                         nuevo_telefono = st.text_input("Teléfono", value=est['telefono'])
                         nuevo_tutor = st.text_input("Nombre del tutor", value=est['tutor_nombre'])
-                        nuevo_tutor_correo = st.text_input("Correo del tutor", vél tealue=est['tutor_correo'])
+                        nuevo_tutor_correo = st.text_input("Correo del tutor", value=est['tutor_correo'])
                         nuevo_tutor_tel = st.text_input("Teléfono del tutor", value=est['tutor_telefono'])
                         nuevo_parentesco = st.selectbox("Parentesco", ["Padre", "Madre", "Tío/a", "Otro"], index=["Padre", "Madre", "Tío/a", "Otro"].index(est['parentesco']))
 
@@ -211,7 +211,7 @@ def gestion_estudiantes():
                     fecha_ven = st.date_input("Fecha de vencimiento", key="fecha_ven")
                     clases_pagadas = st.number_input("Clases pagadas", min_value=1, step=1, key="clases_pagadas")
                     if st.button("Guardar pago", key="guardar_pago"):
-                            cursor.execute("INSERT INTO pagos (estudiante_id, monto, fecha, fecha_vencimiento, clases_pagadas) VALUES (%s, %s, %s, %s, %s)",
+                        cursor.execute("INSERT INTO pagos (estudiante_id, monto, fecha, fecha_vencimiento, clases_pagadas) VALUES (%s, %s, %s, %s, %s)",
                                        (estudiante_id, monto, fecha_pago, fecha_ven, clases_pagadas))
                         conn.commit()
                         st.rerun()
