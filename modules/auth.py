@@ -14,12 +14,14 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def login():
+    st.write("🔍 Entrando a función login()")
     st.title("🔐 Iniciar Sesión")
     correo = st.text_input("Correo electrónico")
     password = st.text_input("Contraseña", type="password")
     rol = st.selectbox("Rol", ["admin", "profesor", "estudiante"])
 
     if st.button("Ingresar"):
+        st.write("🔐 Botón presionado, intentando conexión")
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
