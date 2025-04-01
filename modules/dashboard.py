@@ -56,7 +56,7 @@ def mostrar_dashboard():
         st.metric("💰 Pagado este mes", f"${total_pagado:.2f}")
 
     st.markdown("---")
-    st.subheader("📆 Próximos vencimientos de pago")
+    with st.expander("📆 Próximos vencimientos de pago", expanded=True):
     if vencimientos:
         df_vencimientos = pd.DataFrame(vencimientos)
         st.table(df_vencimientos)
@@ -64,7 +64,7 @@ def mostrar_dashboard():
         st.info("No hay vencimientos próximos registrados")
 
     st.markdown("---")
-    st.subheader("🔔 Alertas de clases")
+    with st.expander("🔔 Alertas de clases", expanded=True):
     if alertas:
         df_alertas = pd.DataFrame(alertas)
         st.table(df_alertas)
