@@ -19,7 +19,6 @@ def gestion_clases():
     ], horizontal=True)
 
     if opcion == "📘 Registrar Clase":
-        # ... sin cambios ...
         st.subheader("Registrar nueva clase")
         cursor.execute("SELECT id, nombre FROM cursos")
         cursos = cursor.fetchall()
@@ -46,7 +45,6 @@ def gestion_clases():
             st.success("Clase registrada exitosamente")
 
     elif opcion == "📄 Lista de Clases":
-        # ... sin cambios ...
         st.subheader("📋 Clases Programadas")
         cursor.execute("""
             SELECT c.nombre as curso, p.nombre as profesor, cl.fecha, cl.hora_inicio, cl.hora_fin
@@ -74,8 +72,6 @@ def gestion_clases():
             st.info("No hay clases registradas aún.")
 
     elif opcion == "🛠️ Editar / Eliminar Clases":
-        # ... sin cambios ...
-        # se mantiene igual
         pass
 
     elif opcion == "📅 Vista Calendario":
@@ -99,6 +95,10 @@ def gestion_clases():
             if clases_rango:
                 df_cal = pd.DataFrame(clases_rango)
                 try:
+                    df_cal['fecha'] = pd.to_datetime(df_cal['fecha']).dt.date
+                    df_cal['hora_inicio'] = pd.to_datetime(df_cal['hora_inicio'].astype(str)).dt.time
+                    df_cal['hora_fin'] = pd.to_datetime(df_cal['hora_fin'].astype(str)).dt.time
+
                     df_cal['start'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_inicio']), axis=1)
                     df_cal['end'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_fin']), axis=1)
                 except Exception as e:
