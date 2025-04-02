@@ -4,20 +4,21 @@ import io
 from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
 
+
 def gestion_clases():
-    st.title("Gestión de Clases")
+    st.title("📅 Gestión de Clases")
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
     opcion = st.radio("Selecciona una opción:", [
-        "Registrar Clase",
-        "Lista de Clases",
-        "Editar / Eliminar Clases",
-        "Vista Calendario"
+        "📘 Registrar Clase",
+        "📄 Lista de Clases",
+        "🛠️ Editar / Eliminar Clases",
+        "📅 Vista Calendario"
     ], horizontal=True)
 
-    if opcion == "Registrar Clase":
-        st.subheader("Nueva Clase")
+    if opcion == "📘 Registrar Clase":
+        st.subheader("Registrar nueva clase")
         cursor.execute("SELECT id, nombre FROM cursos")
         cursos = cursor.fetchall()
         cursos_dict = {c["nombre"]: c["id"] for c in cursos}
@@ -42,8 +43,8 @@ def gestion_clases():
             conn.commit()
             st.success("Clase registrada exitosamente")
 
-    elif opcion == "Lista de Clases":
-        st.subheader("Clases Programadas")
+    elif opcion == "📄 Lista de Clases":
+        st.subheader("📋 Clases Programadas")
         cursor.execute("""
             SELECT c.nombre as curso, p.nombre as profesor, cl.fecha, cl.hora_inicio, cl.hora_fin
             FROM clases cl
@@ -55,7 +56,11 @@ def gestion_clases():
 
         if clases:
             df = pd.DataFrame(clases)
+
+            st.write("### 🗂 Tipos de datos:")
+            st.dataframe(df.dtypes.to_frame().T)
             st.dataframe(df)
+
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
@@ -68,7 +73,7 @@ def gestion_clases():
         else:
             st.info("No hay clases registradas aún.")
 
-    elif opcion == "Editar / Eliminar Clases":
+    elif opcion == "🛠️ Editar / Eliminar Clases":
         st.subheader("Editar o Eliminar Clase")
         cursor.execute("""
             SELECT cl.id, c.nombre as curso, p.nombre as profesor, cl.fecha, cl.hora_inicio, cl.hora_fin
@@ -120,8 +125,8 @@ def gestion_clases():
         else:
             st.info("No hay clases disponibles para editar o eliminar.")
 
-    elif opcion == "Vista Calendario":
-        st.subheader("Clases por Calendario")
+    elif opcion == "📅 Vista Calendario":
+        st.subheader("📅 Clases por Calendario")
         fecha_inicio = st.date_input("Desde", date.today())
         fecha_fin = st.date_input("Hasta", date.today() + timedelta(days=7))
 
@@ -150,6 +155,10 @@ def gestion_clases():
                 df_cal['start'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_inicio']), axis=1)
                 df_cal['end'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_fin']), axis=1)
                 df_cal['titulo'] = df_cal['curso'] + ' - ' + df_cal['profesor']
+
+                st.write("### Tipos de datos:")
+                st.dataframe(df_cal.dtypes.to_frame().T)
+                st.dataframe(df_cal)
 
                 fig = px.timeline(df_cal, x_start='start', x_end='end', y='titulo', color='curso')
                 fig.update_layout(title="Clases por calendario (timeline)", xaxis_title="Hora", yaxis_title="Clase", showlegend=False)
