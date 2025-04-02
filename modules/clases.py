@@ -140,6 +140,9 @@ def gestion_clases():
 
             if clases_rango:
                 df_cal = pd.DataFrame(clases_rango)
+                st.write("📋 Tipos de datos:")
+                st.write(df_cal.dtypes)
+                st.write(df_cal.head())
                 st.dataframe(df_cal)
 
                 # Visualización avanzada tipo calendario
