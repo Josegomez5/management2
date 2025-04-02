@@ -1,4 +1,4 @@
-# módulo clases
+
 import streamlit as st
 import pandas as pd
 import io
@@ -9,19 +9,17 @@ def gestion_clases():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    opcion = st.radio("Selecciona una opción:", ["Registrar Clase", "Lista de Clases"], horizontal=True)
+    opcion = st.radio("Selecciona una opción:", ["Registrar Clase", "Lista de Clases", "🛠 Editar / Eliminar Clases"], horizontal=True)
 
     if opcion == "Registrar Clase":
         st.subheader("➕ Nueva Clase")
 
-        # Obtener cursos
         cursor.execute("SELECT id, nombre FROM cursos")
         cursos = cursor.fetchall()
         cursos_dict = {c["nombre"]: c["id"] for c in cursos}
         curso_nombre = st.selectbox("Curso", list(cursos_dict.keys()))
         curso_id = cursos_dict[curso_nombre]
 
-        # Obtener profesores
         cursor.execute("SELECT id, nombre FROM profesores")
         profesores = cursor.fetchall()
         profesores_dict = {p["nombre"]: p["id"] for p in profesores}
@@ -65,3 +63,55 @@ def gestion_clases():
             )
         else:
             st.info("No hay clases registradas aún.")
+
+    elif opcion == "🛠 Editar / Eliminar Clases":
+        st.subheader("🛠 Editar o Eliminar Clase")
+        cursor.execute("""
+            SELECT cl.id, c.nombre as curso, p.nombre as profesor, cl.fecha, cl.hora_inicio, cl.hora_fin
+            FROM clases cl
+            JOIN cursos c ON cl.curso_id = c.id
+            JOIN profesores p ON cl.profesor_id = p.id
+            ORDER BY cl.fecha DESC
+        """)
+        clases = cursor.fetchall()
+
+        if clases:
+            df = pd.DataFrame(clases)
+            df["label"] = df.apply(lambda row: f"{row['fecha']} - {row['curso']} ({row['profesor']})", axis=1)
+            selected = st.selectbox("Selecciona una clase para editar/eliminar", df["label"])
+            clase_id = int(df[df["label"] == selected]["id"].values[0])
+
+            cursor.execute("SELECT * FROM clases WHERE id = %s", (clase_id,))
+            clase = cursor.fetchone()
+
+            cursor.execute("SELECT id, nombre FROM cursos")
+            cursos = cursor.fetchall()
+            cursos_dict = {c["nombre"]: c["id"] for c in cursos}
+            curso_edit = st.selectbox("Curso", list(cursos_dict.keys()), index=list(cursos_dict.values()).index(clase["curso_id"]))
+
+            cursor.execute("SELECT id, nombre FROM profesores")
+            profesores = cursor.fetchall()
+            profesores_dict = {p["nombre"]: p["id"] for p in profesores}
+            profesor_edit = st.selectbox("Profesor", list(profesores_dict.keys()), index=list(profesores_dict.values()).index(clase["profesor_id"]))
+
+            fecha_edit = st.date_input("Fecha", value=clase["fecha"])
+            hora_inicio_edit = st.time_input("Hora inicio", value=clase["hora_inicio"])
+            hora_fin_edit = st.time_input("Hora fin", value=clase["hora_fin"])
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Actualizar clase"):
+                    cursor.execute("""
+                        UPDATE clases SET curso_id=%s, profesor_id=%s, fecha=%s, hora_inicio=%s, hora_fin=%s WHERE id=%s
+                    """, (cursos_dict[curso_edit], profesores_dict[profesor_edit], fecha_edit, hora_inicio_edit, hora_fin_edit, clase_id))
+                    conn.commit()
+                    st.success("Clase actualizada")
+                    st.experimental_rerun()
+            with col2:
+                if st.button("🗑 Eliminar clase"):
+                    cursor.execute("DELETE FROM clases WHERE id = %s", (clase_id,))
+                    conn.commit()
+                    st.warning("Clase eliminada")
+                    st.experimental_rerun()
+        else:
+            st.info("No hay clases disponibles para editar o eliminar.")
