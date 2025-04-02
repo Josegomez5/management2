@@ -144,8 +144,8 @@ def gestion_clases():
 
                 # Visualización avanzada tipo calendario
                 import plotly.express as px
-                df_cal['start'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_inicio']), axis=1)
-                df_cal['end'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_fin']), axis=1)
+                df_cal['start'] = pd.to_datetime(df_cal['fecha'].astype(str) + ' ' + df_cal['hora_inicio'].astype(str))
+                df_cal['end'] = pd.to_datetime(df_cal['fecha'].astype(str) + ' ' + df_cal['hora_fin'].astype(str))
                 df_cal['titulo'] = df_cal['curso'] + ' - ' + df_cal['profesor']
 
                 fig = px.timeline(df_cal, x_start='start', x_end='end', y='titulo', color='curso')
