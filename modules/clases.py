@@ -1,7 +1,7 @@
-
 import streamlit as st
 import pandas as pd
 import io
+from datetime import date, timedelta, datetime
 from modules.auth import get_connection
 
 def gestion_clases():
@@ -9,11 +9,15 @@ def gestion_clases():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    opcion = st.radio("Selecciona una opción:", ["Registrar Clase", "Lista de Clases", "🛠 Editar / Eliminar Clases", "📆 Vista Calendario"], horizontal=True)
+    opcion = st.radio("Selecciona una opción:", [
+        "Registrar Clase",
+        "Lista de Clases",
+        "🛠 Editar / Eliminar Clases",
+        "📆 Vista Calendario"
+    ], horizontal=True)
 
     if opcion == "Registrar Clase":
         st.subheader("➕ Nueva Clase")
-
         cursor.execute("SELECT id, nombre FROM cursos")
         cursos = cursor.fetchall()
         cursos_dict = {c["nombre"]: c["id"] for c in cursos}
@@ -64,7 +68,7 @@ def gestion_clases():
         else:
             st.info("No hay clases registradas aún.")
 
-    elif opcion == "🛠 Editar / Eliminar Clases", "📆 Vista Calendario":
+    elif opcion == "🛠 Editar / Eliminar Clases":
         st.subheader("🛠 Editar o Eliminar Clase")
         cursor.execute("""
             SELECT cl.id, c.nombre as curso, p.nombre as profesor, cl.fecha, cl.hora_inicio, cl.hora_fin
@@ -95,8 +99,8 @@ def gestion_clases():
             profesor_edit = st.selectbox("Profesor", list(profesores_dict.keys()), index=list(profesores_dict.values()).index(clase["profesor_id"]))
 
             fecha_edit = st.date_input("Fecha", value=clase["fecha"])
-            hora_inicio_edit = st.time_input("Hora inicio", value=clase["hora_inicio"])
-            hora_fin_edit = st.time_input("Hora fin", value=clase["hora_fin"])
+            hora_inicio_edit = st.time_input("Hora inicio", value=datetime.strptime(str(clase["hora_inicio"]), "%H:%M:%S").time())
+            hora_fin_edit = st.time_input("Hora fin", value=datetime.strptime(str(clase["hora_fin"]), "%H:%M:%S").time())
 
             col1, col2 = st.columns(2)
             with col1:
@@ -116,10 +120,8 @@ def gestion_clases():
         else:
             st.info("No hay clases disponibles para editar o eliminar.")
 
-
     elif opcion == "📆 Vista Calendario":
         st.subheader("📅 Clases por Calendario")
-
         fecha_inicio = st.date_input("Desde", date.today())
         fecha_fin = st.date_input("Hasta", date.today() + timedelta(days=7))
 
