@@ -5,7 +5,7 @@ from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
 
 def gestion_clases():
-    st.title("📅 Gestión de Clases")
+    st.title("🗕 Gestión de Clases")
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -13,7 +13,7 @@ def gestion_clases():
         "Registrar Clase",
         "Lista de Clases",
         "🛠 Editar / Eliminar Clases",
-        "📆 Vista Calendario"
+        "🗕 Vista Calendario"
     ], horizontal=True)
 
     if opcion == "Registrar Clase":
@@ -120,8 +120,8 @@ def gestion_clases():
         else:
             st.info("No hay clases disponibles para editar o eliminar.")
 
-    elif opcion == "📆 Vista Calendario":
-        st.subheader("📅 Clases por Calendario")
+    elif opcion == "🗕 Vista Calendario":
+        st.subheader("🗕 Clases por Calendario")
         fecha_inicio = st.date_input("Desde", date.today())
         fecha_fin = st.date_input("Hasta", date.today() + timedelta(days=7))
 
