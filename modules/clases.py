@@ -141,5 +141,15 @@ def gestion_clases():
             if clases_rango:
                 df_cal = pd.DataFrame(clases_rango)
                 st.dataframe(df_cal)
+
+                # Visualización avanzada tipo calendario
+                import plotly.express as px
+                df_cal['start'] = pd.to_datetime(df_cal['fecha'].astype(str) + ' ' + df_cal['hora_inicio'].astype(str))
+                df_cal['end'] = pd.to_datetime(df_cal['fecha'].astype(str) + ' ' + df_cal['hora_fin'].astype(str))
+                df_cal['titulo'] = df_cal['curso'] + ' - ' + df_cal['profesor']
+
+                fig = px.timeline(df_cal, x_start='start', x_end='end', y='titulo', color='curso')
+                fig.update_layout(title="🗓 Clases por calendario (timeline)", xaxis_title="Hora", yaxis_title="Clase", showlegend=False)
+                st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("No hay clases en el rango seleccionado")
