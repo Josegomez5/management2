@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
 
 def gestion_clases():
@@ -145,10 +145,14 @@ def gestion_clases():
                 st.write(df_cal.head())
                 st.dataframe(df_cal)
 
-                # Visualización avanzada tipo calendario
                 import plotly.express as px
-                df_cal['start'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_inicio'] if isinstance(row['hora_inicio'], datetime.time) else pd.to_datetime(row['hora_inicio']).time()), axis=1)
-                df_cal['end'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_fin'] if isinstance(row['hora_fin'], datetime.time) else pd.to_datetime(row['hora_fin']).time()), axis=1)
+
+                df_cal['fecha'] = pd.to_datetime(df_cal['fecha']).dt.date
+                df_cal['hora_inicio'] = df_cal['hora_inicio'].apply(lambda x: (datetime.min + x).time() if pd.notnull(x) else time(0, 0))
+                df_cal['hora_fin'] = df_cal['hora_fin'].apply(lambda x: (datetime.min + x).time() if pd.notnull(x) else time(0, 0))
+
+                df_cal['start'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_inicio']), axis=1)
+                df_cal['end'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_fin']), axis=1)
                 df_cal['titulo'] = df_cal['curso'] + ' - ' + df_cal['profesor']
 
                 fig = px.timeline(df_cal, x_start='start', x_end='end', y='titulo', color='curso')
