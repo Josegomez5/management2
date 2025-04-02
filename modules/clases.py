@@ -9,7 +9,7 @@ def gestion_clases():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    opcion = st.radio("Selecciona una opción:", ["Registrar Clase", "Lista de Clases", "🛠 Editar / Eliminar Clases"], horizontal=True)
+    opcion = st.radio("Selecciona una opción:", ["Registrar Clase", "Lista de Clases", "🛠 Editar / Eliminar Clases", "📆 Vista Calendario"], horizontal=True)
 
     if opcion == "Registrar Clase":
         st.subheader("➕ Nueva Clase")
@@ -64,7 +64,7 @@ def gestion_clases():
         else:
             st.info("No hay clases registradas aún.")
 
-    elif opcion == "🛠 Editar / Eliminar Clases":
+    elif opcion == "🛠 Editar / Eliminar Clases", "📆 Vista Calendario":
         st.subheader("🛠 Editar o Eliminar Clase")
         cursor.execute("""
             SELECT cl.id, c.nombre as curso, p.nombre as profesor, cl.fecha, cl.hora_inicio, cl.hora_fin
@@ -115,3 +115,29 @@ def gestion_clases():
                     st.experimental_rerun()
         else:
             st.info("No hay clases disponibles para editar o eliminar.")
+
+
+    elif opcion == "📆 Vista Calendario":
+        st.subheader("📅 Clases por Calendario")
+
+        fecha_inicio = st.date_input("Desde", date.today())
+        fecha_fin = st.date_input("Hasta", date.today() + timedelta(days=7))
+
+        if fecha_inicio > fecha_fin:
+            st.warning("La fecha de inicio no puede ser posterior a la fecha de fin")
+        else:
+            cursor.execute("""
+                SELECT cl.fecha, cl.hora_inicio, cl.hora_fin, c.nombre as curso, p.nombre as profesor
+                FROM clases cl
+                JOIN cursos c ON cl.curso_id = c.id
+                JOIN profesores p ON cl.profesor_id = p.id
+                WHERE cl.fecha BETWEEN %s AND %s
+                ORDER BY cl.fecha, cl.hora_inicio
+            """, (fecha_inicio, fecha_fin))
+            clases_rango = cursor.fetchall()
+
+            if clases_rango:
+                df_cal = pd.DataFrame(clases_rango)
+                st.dataframe(df_cal)
+            else:
+                st.info("No hay clases en el rango seleccionado")
