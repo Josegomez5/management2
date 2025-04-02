@@ -123,8 +123,8 @@ def gestion_clases():
         else:
             st.info("No hay clases disponibles para editar o eliminar.")
 
-    elif opcion == "📅 Vista Calendario1":
-        st.subheader("📅 Clases por Calendario1")
+    elif opcion == "📅 Vista Calendario":
+        st.subheader("📅 Clases por Calendario")
         fecha_inicio = st.date_input("Desde", date.today())
         fecha_fin = st.date_input("Hasta", date.today() + timedelta(days=7))
 
