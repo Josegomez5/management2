@@ -3,7 +3,7 @@ import pandas as pd
 import io
 from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
-import plotly.express as px
+import calendar
 
 
 def gestion_clases():
@@ -75,57 +75,33 @@ def gestion_clases():
         pass
 
     elif opcion == "📅 Vista Calendario":
-        st.subheader("📅 Clases por Calendario")
-        fecha_inicio = st.date_input("Desde", date.today())
-        fecha_fin = st.date_input("Hasta", date.today() + timedelta(days=7))
+        st.subheader("🗓️ Calendario Mensual de Clases")
 
-        if fecha_inicio > fecha_fin:
-            st.warning("La fecha de inicio no puede ser posterior a la fecha de fin")
+        mes = st.selectbox("Mes", list(calendar.month_name)[1:])
+        anio = st.number_input("Año", min_value=2020, max_value=2100, value=date.today().year)
+        mes_num = list(calendar.month_name).index(mes)
+
+        primer_dia = date(anio, mes_num, 1)
+        ultimo_dia = date(anio, mes_num, calendar.monthrange(anio, mes_num)[1])
+
+        cursor.execute("""
+            SELECT cl.fecha, cl.hora_inicio, cl.hora_fin, c.nombre as curso, p.nombre as profesor
+            FROM clases cl
+            JOIN cursos c ON cl.curso_id = c.id
+            JOIN profesores p ON cl.profesor_id = p.id
+            WHERE cl.fecha BETWEEN %s AND %s
+            ORDER BY cl.fecha, cl.hora_inicio
+        """, (primer_dia, ultimo_dia))
+        clases = cursor.fetchall()
+
+        if clases:
+            df = pd.DataFrame(clases)
+            df["fecha"] = pd.to_datetime(df["fecha"]).dt.date
+            dias = sorted(df["fecha"].unique())
+
+            for dia in dias:
+                with st.expander(f"📅 {dia.strftime('%A, %d %B %Y')}"):
+                    sub_df = df[df["fecha"] == dia][["hora_inicio", "hora_fin", "curso", "profesor"]]
+                    st.table(sub_df.rename(columns={"hora_inicio": "Inicio", "hora_fin": "Fin", "curso": "Curso", "profesor": "Profesor"}))
         else:
-            cursor.execute("""
-                SELECT cl.fecha, cl.hora_inicio, cl.hora_fin, c.nombre as curso, p.nombre as profesor
-                FROM clases cl
-                JOIN cursos c ON cl.curso_id = c.id
-                JOIN profesores p ON cl.profesor_id = p.id
-                WHERE cl.fecha BETWEEN %s AND %s
-                ORDER BY cl.fecha, cl.hora_inicio
-            """, (fecha_inicio, fecha_fin))
-            clases_rango = cursor.fetchall()
-
-            if clases_rango:
-                df_cal = pd.DataFrame(clases_rango)
-                try:
-                    df_cal['start'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_inicio'] if isinstance(row['hora_inicio'], time) else (datetime.min + pd.to_timedelta(str(row['hora_inicio']))).time()), axis=1)
-                    df_cal['end'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_fin'] if isinstance(row['hora_fin'], time) else (datetime.min + pd.to_timedelta(str(row['hora_fin']))).time()), axis=1)
-                except Exception as e:
-                    st.error(f"Error al procesar fechas y horas: {e}")
-                    return
-
-                df_cal['evento'] = df_cal['curso'] + ' - ' + df_cal['profesor']
-
-                st.write("### 🗂 Vista tabular de clases en el calendario")
-                st.dataframe(df_cal[['fecha', 'hora_inicio', 'hora_fin', 'curso', 'profesor']])
-
-                fig = px.timeline(
-                    df_cal,
-                    x_start="start",
-                    x_end="end",
-                    y="evento",
-                    color="curso",
-                    title="Clases en calendario",
-                    labels={"evento": "Clase"}
-                )
-                fig.update_layout(xaxis_title="Fecha y hora", yaxis_title="Clase", showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
-
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                    df_cal[['fecha', 'hora_inicio', 'hora_fin', 'curso', 'profesor']].to_excel(writer, index=False)
-                st.download_button(
-                    label="Descargar Excel",
-                    data=output.getvalue(),
-                    file_name="clases_calendario.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            else:
-                st.info("No hay clases en el rango seleccionado")
+            st.info("No hay clases registradas para este mes.")
