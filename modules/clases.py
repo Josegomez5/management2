@@ -5,13 +5,15 @@ from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
 import calendar
 import random
-import streamlit.components.v1 as components
 
 
 def gestion_clases():
     st.title("📅 Gestión de Clases")
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
+
+    if "dia_seleccionado" not in st.session_state:
+        st.session_state.dia_seleccionado = None
 
     opcion = st.radio("Selecciona una opción:", [
         "📘 Registrar Clase",
@@ -101,56 +103,43 @@ def gestion_clases():
             df["fecha"] = pd.to_datetime(df["fecha"]).dt.date
 
             dias_mes = calendar.monthrange(anio, mes_num)[1]
-            calendario_html = "<table style='width:100%; border-collapse: collapse;'>"
-            calendario_html += "<tr>" + "".join(f"<th style='border:1px solid #ccc; padding:5px'>{day}</th>" for day in ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]) + "</tr>"
-
-            day_pointer = date(anio, mes_num, 1)
-            weekday = (day_pointer.weekday() + 1) % 7
-
-            calendario_html += "<tr>" + "<td></td>" * weekday
             for day in range(1, dias_mes + 1):
                 current_day = date(anio, mes_num, day)
                 eventos = df[df["fecha"] == current_day]
-                content = f"<strong>{day}</strong><br>"
-                for _, row in eventos.iterrows():
-                    content += f"<div style='background:#e3f2fd; padding:2px; margin:2px; border-radius:4px;'>🕘 {row['hora_inicio']} - {row['curso']}<br><small>{row['profesor']}</small></div>"
-                content += f"<br><a href='?form_dia={current_day}' style='font-size:0.85em'>➕ Añadir</a>"
-                calendario_html += f"<td style='vertical-align:top; border:1px solid #ccc; padding:5px'>{content}</td>"
-                weekday += 1
-                if weekday == 7:
-                    calendario_html += "</tr><tr>"
-                    weekday = 0
-            if weekday != 0:
-                calendario_html += "<td></td>" * (7 - weekday) + "</tr>"
-            calendario_html += "</table>"
 
-            components.html(f"<div style='overflow-x:auto'>{calendario_html}</div>", height=600, scrolling=True)
+                with st.expander(f"📅 {current_day.strftime('%A, %d %B %Y')}"):
+                    for _, row in eventos.iterrows():
+                        st.markdown(f"- 🕘 {row['hora_inicio']} - {row['curso']} ({row['profesor']})")
 
-            form_dia = st.query_params.get("form_dia")
-            if form_dia:
+                    if st.button(f"➕ Añadir clase", key=f"add_{current_day}"):
+                        st.session_state.dia_seleccionado = current_day
+
+            if st.session_state.dia_seleccionado:
                 st.markdown("---")
-                st.subheader(f"Registrar clase el {form_dia}")
+                st.subheader(f"Registrar clase el {st.session_state.dia_seleccionado.strftime('%A, %d %B %Y')}")
+
                 cursor.execute("SELECT id, nombre FROM cursos")
                 cursos = cursor.fetchall()
                 cursos_dict = {c["nombre"]: c["id"] for c in cursos}
-                curso_nombre = st.selectbox("Curso", list(cursos_dict.keys()), key="f1")
+                curso_nombre = st.selectbox("Curso", list(cursos_dict.keys()), key="form_curso")
                 curso_id = cursos_dict[curso_nombre]
 
                 cursor.execute("SELECT id, nombre FROM profesores")
                 profesores = cursor.fetchall()
                 profesores_dict = {p["nombre"]: p["id"] for p in profesores}
-                profesor_nombre = st.selectbox("Profesor", list(profesores_dict.keys()), key="f2")
+                profesor_nombre = st.selectbox("Profesor", list(profesores_dict.keys()), key="form_prof")
                 profesor_id = profesores_dict[profesor_nombre]
 
-                hora_inicio = st.time_input("Hora de inicio", key="f3")
-                hora_fin = st.time_input("Hora de fin", key="f4")
+                hora_inicio = st.time_input("Hora de inicio", key="form_ini")
+                hora_fin = st.time_input("Hora de fin", key="form_fin")
 
-                if st.button("Guardar clase", key="f5"):
+                if st.button("Guardar clase", key="form_submit"):
                     cursor.execute(
                         "INSERT INTO clases (curso_id, profesor_id, fecha, hora_inicio, hora_fin) VALUES (%s, %s, %s, %s, %s)",
-                        (curso_id, profesor_id, form_dia, hora_inicio, hora_fin)
+                        (curso_id, profesor_id, st.session_state.dia_seleccionado, hora_inicio, hora_fin)
                     )
                     conn.commit()
                     st.success("Clase registrada exitosamente")
+                    st.session_state.dia_seleccionado = None
         else:
             st.info("No hay clases registradas para este mes.")
