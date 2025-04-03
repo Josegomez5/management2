@@ -5,6 +5,7 @@ from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
 import calendar
 import random
+import streamlit.components.v1 as components
 
 
 def gestion_clases():
@@ -98,26 +99,33 @@ def gestion_clases():
         if clases:
             df = pd.DataFrame(clases)
             df["fecha"] = pd.to_datetime(df["fecha"]).dt.date
-            dias = sorted(df["fecha"].unique())
 
-            colores = {}
-            iconos = ["📘", "💡", "🧪", "🖌️", "📐", "🎵", "🌍", "🔬"]
+            # Preparar calendario en forma de tabla
+            dias_mes = calendar.monthrange(anio, mes_num)[1]
+            calendario_html = "<table style='width:100%; border-collapse: collapse;'>"
+            calendario_html += "<tr>" + "".join(f"<th style='border:1px solid #ccc; padding:5px'>{day}</th>" for day in ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]) + "</tr>"
 
-            for curso in df["curso"].unique():
-                colores[curso] = random.choice(["#FFDDC1", "#D1E8E4", "#F8E1F4", "#FFF6BF", "#E0BBE4"])
+            day_pointer = date(anio, mes_num, 1)
+            weekday = (day_pointer.weekday() + 1) % 7
 
-            for dia in dias:
-                sub_df = df[df["fecha"] == dia][["hora_inicio", "hora_fin", "curso", "profesor"]]
-                eventos = []
-                for _, row in sub_df.iterrows():
-                    color = colores.get(row["curso"], "#f0f0f0")
-                    icon = random.choice(iconos)
-                    eventos.append(f"<div style='background-color:{color}; padding:6px; border-radius:10px; margin-bottom:5px;'>"
-                                   f"{icon} <b>{row['curso']}</b><br>🧑‍🏫 {row['profesor']}<br>🕘 {row['hora_inicio']} - {row['hora_fin']}"
-                                   f"</div>")
+            calendario_html += "<tr>" + "<td></td>" * weekday
+            for day in range(1, dias_mes + 1):
+                current_day = date(anio, mes_num, day)
+                eventos = df[df["fecha"] == current_day]
+                content = f"<strong>{day}</strong><br>"
+                for _, row in eventos.iterrows():
+                    content += f"<div style='background:#e3f2fd; padding:2px; margin:2px; border-radius:4px;'>🕘 {row['hora_inicio']} - {row['curso']}<br><small>{row['profesor']}</small></div>"
 
-                with st.expander(f"📅 {dia.strftime('%A, %d %B %Y')}"):
-                    for evento in eventos:
-                        st.markdown(evento, unsafe_allow_html=True)
+                calendario_html += f"<td style='vertical-align:top; border:1px solid #ccc; padding:5px'>{content}</td>"
+                weekday += 1
+                if weekday == 7:
+                    calendario_html += "</tr><tr>"
+                    weekday = 0
+            if weekday != 0:
+                calendario_html += "<td></td>" * (7 - weekday) + "</tr>"
+            calendario_html += "</table>"
+
+            components.html(f"<div style='overflow-x:auto'>{calendario_html}</div>", height=600, scrolling=True)
+
         else:
             st.info("No hay clases registradas para este mes.")
