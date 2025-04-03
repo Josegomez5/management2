@@ -95,12 +95,8 @@ def gestion_clases():
             if clases_rango:
                 df_cal = pd.DataFrame(clases_rango)
                 try:
-                    df_cal['fecha'] = pd.to_datetime(df_cal['fecha']).dt.date
-                    df_cal['hora_inicio'] = pd.to_datetime(df_cal['hora_inicio'].astype(str)).dt.time
-                    df_cal['hora_fin'] = pd.to_datetime(df_cal['hora_fin'].astype(str)).dt.time
-
-                    df_cal['start'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_inicio']), axis=1)
-                    df_cal['end'] = df_cal.apply(lambda row: datetime.combine(row['fecha'], row['hora_fin']), axis=1)
+                    df_cal['start'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_inicio'] if isinstance(row['hora_inicio'], time) else (datetime.min + pd.to_timedelta(str(row['hora_inicio']))).time()), axis=1)
+                    df_cal['end'] = df_cal.apply(lambda row: datetime.combine(pd.to_datetime(row['fecha']).date(), row['hora_fin'] if isinstance(row['hora_fin'], time) else (datetime.min + pd.to_timedelta(str(row['hora_fin']))).time()), axis=1)
                 except Exception as e:
                     st.error(f"Error al procesar fechas y horas: {e}")
                     return
