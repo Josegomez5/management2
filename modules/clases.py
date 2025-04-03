@@ -110,22 +110,31 @@ def gestion_clases():
     elif opcion == "📅 Vista Calendario":
         vista_calendario()
 
+import streamlit as st
+import pandas as pd
+from datetime import date
+import calendar
+from modules.auth import get_connection
+
 def vista_calendario():
-    st.subheader("📅 Calendario de Clases")
+    st.subheader("📅 Calendario Mensual de Clases")
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
     meses = list(calendar.month_name)[1:]
-    mes = st.selectbox("Mes", meses, index=datetime.now().month - 1)
-    anio = st.number_input("Año", min_value=2020, max_value=2100, value=datetime.now().year)
+    mes_actual = date.today().month
+    anio_actual = date.today().year
+
+    mes = st.selectbox("Mes", meses, index=mes_actual - 1)
+    anio = st.number_input("Año", min_value=2020, max_value=2100, value=anio_actual)
     mes_num = meses.index(mes) + 1
 
     primer_dia = date(anio, mes_num, 1)
     ultimo_dia = date(anio, mes_num, calendar.monthrange(anio, mes_num)[1])
 
     cursor.execute("""
-        SELECT cl.id, cl.fecha, cl.hora_inicio, cl.hora_fin, c.nombre as curso, p.nombre as profesor
+        SELECT cl.fecha, cl.hora_inicio, cl.hora_fin, c.nombre as curso, p.nombre as profesor
         FROM clases cl
         JOIN cursos c ON cl.curso_id = c.id
         JOIN profesores p ON cl.profesor_id = p.id
@@ -140,21 +149,42 @@ def vista_calendario():
         return
 
     df["fecha"] = pd.to_datetime(df["fecha"]).dt.date
+
+    cal = calendar.Calendar(firstweekday=0)
+    semanas = cal.monthdatescalendar(anio, mes_num)
     dias_semana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 
-    st.markdown("<style>.calendar-title { color: white; font-weight: bold; }</style>", unsafe_allow_html=True)
-    st.markdown("### 🗓 Vista semanal")
+    st.markdown("""<style>
+        .day-box {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px;
+            height: 120px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .day-label {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .event {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+    </style>""", unsafe_allow_html=True)
 
-    for semana in calendar.Calendar().monthdatescalendar(anio, mes_num):
+    st.markdown("### 🗓 Calendario visual")
+    for semana in semanas:
         cols = st.columns(7)
         for i, dia in enumerate(semana):
             with cols[i]:
-                if dia.month == mes_num:
-                    st.markdown(f"<div class='calendar-title'>{dias_semana[i]}<br>{dia.day}</div>", unsafe_allow_html=True)
-                    eventos = df[df["fecha"] == dia]
-                    for _, row in eventos.iterrows():
-                        hora = str(row["hora_inicio"])[:5]
-                        st.markdown(f"🕘 {hora}<br>{row['curso']}<br><small>{row['profesor']}</small>", unsafe_allow_html=True)
+                box_style = "style='opacity:0.4'" if dia.month != mes_num else ""
+                eventos = df[df["fecha"] == dia]
+                st.markdown(f"<div class='day-box' {box_style}><div class='day-label'>{dia.day}</div>", unsafe_allow_html=True)
+                for _, row in eventos.iterrows():
+                    hora = str(row['hora_inicio'])[:5]
+                    st.markdown(f"<div class='event'>🕘 {hora} - {row['curso']}</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("### 📋 Lista de todas las clases del mes")
+    st.markdown("### 📋 Lista de clases del mes")
     st.dataframe(df)
