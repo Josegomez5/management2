@@ -4,6 +4,7 @@ import io
 from datetime import date, timedelta, datetime, time
 from modules.auth import get_connection
 import calendar
+import random
 
 
 def gestion_clases():
@@ -99,9 +100,24 @@ def gestion_clases():
             df["fecha"] = pd.to_datetime(df["fecha"]).dt.date
             dias = sorted(df["fecha"].unique())
 
+            colores = {}
+            iconos = ["📘", "💡", "🧪", "🖌️", "📐", "🎵", "🌍", "🔬"]
+
+            for curso in df["curso"].unique():
+                colores[curso] = random.choice(["#FFDDC1", "#D1E8E4", "#F8E1F4", "#FFF6BF", "#E0BBE4"])
+
             for dia in dias:
+                sub_df = df[df["fecha"] == dia][["hora_inicio", "hora_fin", "curso", "profesor"]]
+                eventos = []
+                for _, row in sub_df.iterrows():
+                    color = colores.get(row["curso"], "#f0f0f0")
+                    icon = random.choice(iconos)
+                    eventos.append(f"<div style='background-color:{color}; padding:6px; border-radius:10px; margin-bottom:5px;'>"
+                                   f"{icon} <b>{row['curso']}</b><br>🧑‍🏫 {row['profesor']}<br>🕘 {row['hora_inicio']} - {row['hora_fin']}"
+                                   f"</div>")
+
                 with st.expander(f"📅 {dia.strftime('%A, %d %B %Y')}"):
-                    sub_df = df[df["fecha"] == dia][["hora_inicio", "hora_fin", "curso", "profesor"]]
-                    st.table(sub_df.rename(columns={"hora_inicio": "Inicio", "hora_fin": "Fin", "curso": "Curso", "profesor": "Profesor"}))
+                    for evento in eventos:
+                        st.markdown(evento, unsafe_allow_html=True)
         else:
             st.info("No hay clases registradas para este mes.")
