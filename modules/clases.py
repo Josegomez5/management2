@@ -4,6 +4,7 @@ import pandas as pd
 import calendar
 from datetime import date
 from modules.auth import get_connection
+import io
 
 def render_html_calendar(df, anio, mes):
     st.markdown("""
@@ -44,14 +45,12 @@ def render_html_calendar(df, anio, mes):
         </style>
     """, unsafe_allow_html=True)
 
-    st.subheader("📅 Calendario mensual de clases")
-
+    st.markdown("### 🗓 Calendario Visual")
     headers = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
     st.markdown('<div class="calendar">' + ''.join([f'<div class="day-header">{h}</div>' for h in headers]) + '</div>', unsafe_allow_html=True)
 
     first_weekday, days_in_month = calendar.monthrange(anio, mes)
-    first_weekday = (first_weekday + 1) % 7  # Ajustar inicio en lunes
-
+    first_weekday = (first_weekday + 1) % 7  # Ajustar lunes
     calendar_cells = [""] * first_weekday + list(range(1, days_in_month + 1))
     rows = []
 
@@ -67,7 +66,6 @@ def render_html_calendar(df, anio, mes):
 
     full_calendar_html = '<div class="calendar">' + ''.join(rows) + '</div>'
     st.markdown(full_calendar_html, unsafe_allow_html=True)
-
 
 def gestion_clases():
     st.title("📅 Gestión de Clases")
@@ -95,5 +93,18 @@ def gestion_clases():
         df = pd.DataFrame(clases)
         df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         render_html_calendar(df, anio, mes_num)
+
+        st.markdown("### 📋 Lista de Clases del Mes")
+        st.dataframe(df)
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name="Clases del mes")
+        st.download_button(
+            label="⬇️ Descargar Excel",
+            data=output.getvalue(),
+            file_name="clases_mes.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     else:
         st.info("No hay clases registradas este mes.")
